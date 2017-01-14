@@ -1,0 +1,13 @@
+﻿Build started 12/24/2016 3:01:01 PM.
+     1>Project "C:\Users\Tommy\workspaces\Visual Studio 2013\Physics\Physics\Physics.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /sdl /O2 /Oi /Oy- /GL /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt graphics.cpp main.cpp
+         graphics.cpp
+     1>c:\users\tommy\workspaces\visual studio 2013\physics\physics\graphics.h(6): fatal error C1083: Cannot open include file: 'GL/glut.h': No such file or directory
+         main.cpp
+     1>main.cpp(2): fatal error C1083: Cannot open include file: 'GL/glut.h': No such file or directory
+     1>Done Building Project "C:\Users\Tommy\workspaces\Visual Studio 2013\Physics\Physics\Physics.vcxproj" (Build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:00.74

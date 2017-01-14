@@ -4,26 +4,32 @@
 
 #include <windows.h>
 #include <GL/glut.h>
+
+#include "precision.h"
 #include "core.h"
 #include "particle.h"
+#include "body.h"
+#include "fgen.h"
 
-extern const char* WINDOW_TITLE;
-extern const int WINDOW_X;
-extern const int WINDOW_Y;
-extern const int WINDOW_W;
-extern const int WINDOW_H;
+#include "collide_fine.h"
+#include "contacts.h"
 
-extern Vector2 mouseVector;
-extern real mouseRadius;
 
 void drawAxis();
-void drawMouse();
+void drawMouse(Vector2 position, real radius);
 void drawCircle();
 void drawSquare();
 void drawPolygon(float x[], float y[], const int N);
 void drawVector2(const Vector2& v);
-void drawParticle(const Particle& p);
-Vector2 screenToWorld(int x, int y);
+void drawLine(const Vector2& v1, const Vector2& v2);
+void drawParticle(Particle *p);
+void drawRigidBody(RigidBody *body);
+void drawSpring(RigidBody *body, Spring *spring);
+void drawContact(Contact *contact);
+void drawCollisionData(CollisionData *data);
+void drawCollisionSphere(CollisionSphere *sphere);
+void drawCollisionBox(CollisionBox *box);
+void drawTrace(Particle *p);
 
 
 #endif // __GRAPHICS_H_INCLUDED__

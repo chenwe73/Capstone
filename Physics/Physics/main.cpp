@@ -3,15 +3,20 @@
 #include <iostream>
 #include <time.h>
 
-#include "precision.h"
-#include "core.h"
-#include "particle.h"
+#include "app.h"
 #include "graphics.h"
-#include "pfgen.h"
 
 using namespace std;
 
-void initGL();
+const char* WINDOW_TITLE = "Physics";
+const int WINDOW_X = 700;
+const int WINDOW_Y = 000;
+const int WINDOW_W = 800;
+const int WINDOW_H = 800;
+
+clock_t t;
+Vector2 mouseVector(100, 0);
+
 void display();
 void reshape(GLsizei width, GLsizei height);
 void keyboard(unsigned char key, int x, int y);
@@ -19,38 +24,34 @@ void specialKeys(int key, int x, int y);
 void mouse(int button, int state, int x, int y);
 void passiveMotion(int x, int y);
 void motion(int x, int y);
+void idle();
 
 void init();
-void update();
 void draw();
+void pWorldInit();
+void pWorldUpdate(real duration);
+void worldInit();
+void worldUpdate(real duration);
+void drawParticleWorld();
+void drawWorld();
+Vector2 screenToWorld(int x, int y);
 
-clock_t t;
-Vector2 v1(0.1, 0.4);
-Vector2 v2(0.0, 0.0);
-Particle p1(Vector2(0, 0.5), Vector2(-0.1, 0.1), Vector2(0, 0), 0.99, 1, Vector2(0, 0));
-ParticleForceRegistry registry;
-ParticleGravity gravity(Vector2(0, -0.2));
-ParticleDrag drag(0.2, 0.2);
-ParticleField field(Vector2(0, 0), mouseRadius, 0.01);
-ParticleAnchoredSpring ancheredSpring(&v2, 5, 0.2);
-
+void test();
 
 int main(int argc, char* argv[])
 {
-	void test();
 	//test();
-	init();
 
 	glutInit(&argc, argv);            // Initialize GLUT
 	glutInitDisplayMode(GLUT_DOUBLE); // Enable double buffered mode
 	glutInitWindowSize(WINDOW_W, WINDOW_H);  // Initial window width and height
 	glutInitWindowPosition(WINDOW_X, WINDOW_Y); // Initial window top-left corner (x, y)
 	glutCreateWindow(WINDOW_TITLE);      // Create window with given title
-	initGL();                     // Our own OpenGL initialization
+	init();                     // Our own OpenGL initialization
 
 	glutDisplayFunc(display);     // Register callback handler for window re-paint
 	glutReshapeFunc(reshape);     // Register callback handler for window re-shape
-	glutIdleFunc(update);
+	glutIdleFunc(idle);
 	glutKeyboardFunc(keyboard);   // Register callback handler for key event
 	glutSpecialFunc(specialKeys); // Register callback handler for special-key event
 	glutMouseFunc(mouse);   // Register callback handler for mouse event
@@ -62,9 +63,11 @@ int main(int argc, char* argv[])
 }
 
 /* Initialize OpenGL Graphics */
-void initGL() 
+void init() 
 {
 	glClearColor(0.0, 0.0, 0.0, 1.0); // Set background (clear) color
+	pWorldInit();
+	//worldInit();
 }
 
 void display() 
@@ -87,25 +90,25 @@ void keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
-		case 27:     // ESC key
-			exit(0);
-			break;
-		default:
-			break;
+	case 'g':
+		gravityOn = !gravityOn;
+		break;
+
+	case 'c':
+		control1.on = !control1.on;
+		control2.on = !control2.on;
+		control3.on = !control3.on;
+		control4.on = !control4.on;
+		break;
+
+	default:
+		break;
 	}
 }
 
 /* Callback handler for special-key event */
 void specialKeys(int key, int x, int y) 
 {
-	switch (key) 
-	{
-		case GLUT_KEY_F1:
-			exit(0);
-			break;
-		default:
-			break;
-	}
 }
 
 /* Callback handler for mouse event */
@@ -128,59 +131,194 @@ void passiveMotion(int x, int y)
 	mouseVector = screenToWorld(x, y);
 }
 
-void init()
+void idle()
 {
-	registry.add(&p1, &gravity);
-	registry.add(&p1, &drag);
-	registry.add(&p1, &field);
-	registry.add(&p1, &ancheredSpring);
-}
-
-void update()
-{
-	real time = (real)(clock() - t) / CLOCKS_PER_SEC;
+	real duration = (real)(clock() - t) / CLOCKS_PER_SEC;
 	t = clock();
 
-	v1.rotate(time);
-	field.setSource(mouseVector);
-	registry.updateForces(time);
-	p1.integrate(time);
+	//duration = 1.0f / 60;
+	//std::cin.ignore();
+	//cout << 1.0f/duration << "  ";
+
+	if (duration > 0)
+	{
+		pWorldUpdate(duration);
+		//worldUpdate(duration);
+	}
 
 	glutPostRedisplay();    // Post a paint request to activate display()
+}
 
-	p1.getPosition().print();
-	cout << "\n";
+void pWorldInit()
+{
+	pWorld.getParticles().push_back(&p1);
+	pWorld.getParticles().push_back(&p2);
+	pWorld.getParticles().push_back(&p3);
+	pWorld.getParticles().push_back(&p4);
+
+	ParticleWorld::Particles::iterator i = pWorld.getParticles().begin();
+	for (; i != pWorld.getParticles().end(); i++)
+	{
+		pWorld.getForceRegistry().add((*i), &gravity);
+		pWorld.getForceRegistry().add((*i), &drag);
+		pWorld.getForceRegistry().add((*i), &field);
+		pWorld.getForceRegistry().add((*i), &buoyancy);
+	}
+
+	//pWorld.getForceRegistry().add(&p1, &spring1);
+	//pWorld.getForceRegistry().add(&p2, &spring2);
+	//pWorld.getForceRegistry().add(&p1, &ancheredSpring);
+	
+	//pWorld.getForceRegistry().add(&p1, &bungee1);
+	//pWorld.getForceRegistry().add(&p2, &bungee2);
+	//pWorld.getForceRegistry().add(&p1, &ancheredBungee);
+	//pWorld.getForceRegistry().add(&p1, &fakeSpring);
+	//pWorld.getForceRegistry().add(&p3, &pointGravity);
+
+	pWorld.getForceRegistry().add(&p1, &control1);
+	pWorld.getForceRegistry().add(&p2, &control2);
+	pWorld.getForceRegistry().add(&p3, &control3);
+	pWorld.getForceRegistry().add(&p4, &control4);
+	
+	//pWorld.getContactGenerators().push_back(&rod1);
+	//pWorld.getContactGenerators().push_back(&rod2);
+	//pWorld.getContactGenerators().push_back(&rod3);
+	//pWorld.getContactGenerators().push_back(&rod4);
+}
+
+void pWorldUpdate(real duration)
+{
+	field.setSource(mouseVector);
+	if (gravityOn)
+		gravity.setGravity(g);
+	else
+		gravity.setGravity(Vector2::ORIGIN);
+
+
+	pWorld.startFrame();
+	pWorld.runPhysics(duration);
+
+	//p4.getPosition().print();
+	//cout << "\n";
+}
+
+void worldInit()
+{
+	world.getRigidBodies().push_back(&body1);
+	world.getRigidBodies().push_back(&body2);
+
+	World::RigidBodies::iterator i = world.getRigidBodies().begin();
+	for (; i != world.getRigidBodies().end(); i++)
+	{
+		world.getForceRegistry().add((*i), &gravityB);
+		world.getForceRegistry().add((*i), &fieldB);
+		//world.getForceRegistry().add((*i), &buoyancyB1);
+		//world.getForceRegistry().add((*i), &buoyancyB2);
+		world.getForceRegistry().add((*i), &aero);
+	}
+
+	//world.getForceRegistry().add(&body1, &springB1);
+	//world.getForceRegistry().add(&body2, &springB2);
+
+	collisionData.contactArray = new Contact[100];
+	collisionData.restitution = 0.4;
+	
+	sphere1.body = &body1;
+	sphere1.radius = 0.2;
+	sphere2.body = &body2;
+	sphere2.radius = 0.2;
+	plane.normal = Vector2::Y;
+	plane.offset = waterHeight;
+	box1.body = &body1;
+	box1.halfSize = size;
+	box2.body = &body2;
+	box2.halfSize = size;
+}
+
+void worldUpdate(real duration)
+{
+	fieldB.setSource(mouseVector);
+	if (gravityOn)
+		gravityB.setGravity(g);
+	else
+		gravityB.setGravity(Vector2::ORIGIN);
+
+	world.startFrame();
+	world.runPhysics(duration);
+
+	body1.getPosition().print();
+	body1.getOrientation().print();
+
+	collisionData.contacts = collisionData.contactArray;
+	collisionData.contactsLeft = 100;
+	collisionData.contactsCount = 0;
+	int numContact = 0;
+	numContact += CollisionDetector::boxAndHalfSpace(box1, plane, &collisionData);
+	numContact += CollisionDetector::boxAndHalfSpace(box2, plane, &collisionData);
+	numContact += CollisionDetector::boxAndBox2(box2, box1, &collisionData);
+	cout << numContact << "\n";
+	
+	for (int i = 0; i < collisionData.contactsCount; i++)
+	{
+		(collisionData.contactArray[i]).calculateInternals(duration);
+		//(collisionData.contactArray[i]).applyImpulse();
+		//(collisionData.contactArray[i]).applypositionchange();
+	}		
 }
 
 void draw()
 {
-	glColor3f(0.0f, 0.0f, 1.0f);
-	drawMouse();
-
 	glColor3f(1.0f, 1.0f, 1.0f);
 	drawAxis();
 
-	glColor3f(1.0f, 0.0f, 0.0f);
-	//drawVector2(v1);
+	drawParticleWorld();
+	//drawWorld();
+	
+	glColor3f(0.0f, 0.0f, 1.0f);
+	drawMouse(mouseVector, mouseRadius);
+	drawLine(Vector2(-1, waterHeight), Vector2(1, waterHeight));
+	
+}
 
+void drawParticleWorld()
+{
 	glColor3f(0.0f, 1.0f, 0.0f);
-	drawParticle(p1);
-	drawVector2(p1.getPosition());
+	ParticleWorld::Particles::iterator i = pWorld.getParticles().begin();
+	for (; i != pWorld.getParticles().end(); i++)
+		drawParticle(*i);
+
+	glColor3f(0.0f, 0.0f, 1.0f);
+	//drawVector2(p1.getPosition());
+	//drawLine(p1.getPosition(), p2.getPosition());
+
+	//drawTrace(&p3);
+}
+
+void drawWorld()
+{
+	glColor3f(1.0f, 0.0f, 0.0f);
+	drawRigidBody(&body1);
+	//drawCollisionSphere(&sphere1);
+	drawCollisionBox(&box1);
+
+	drawRigidBody(&body2);
+	//drawCollisionSphere(&sphere2);
+	drawCollisionBox(&box2);
+
+	glColor3f(0.0f, 0.0f, 1.0f);
+	//drawSpring(&body1, &springB1);
+	drawCollisionData(&collisionData);
+}
+
+Vector2 screenToWorld(int x, int y)
+{
+	return Vector2(((real)x / WINDOW_W * 2 - 1), (-(real)y / WINDOW_H * 2) + 1);
 }
 
 void test()
 {
-	real a = 2;
-	Vector2 v1(1, 2);
-	v1.print();
-	Vector2 v2;
-	v2.print();
-	cout << "\n";
-
-	v2 = v1*a;
-
-	v1.print();
-	v2.print();
-	cout << v1*v2;
+	Contact c;
+	c.contactNormal = Vector2(-1, 2);
+	c.calculateContactBasis();
+	c.contactToWorld.print();
 }
-

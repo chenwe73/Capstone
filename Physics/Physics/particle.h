@@ -2,6 +2,7 @@
 #define __PARTICLE_H_INCLUDED__
 
 
+#include "precision.h"
 #include "core.h"
 
 class Particle
@@ -10,24 +11,28 @@ private:
 	Vector2 position;
 	Vector2 velocity;
 	Vector2 acceleration;
-	real damping; // 0 to 1
 	real inverseMass; // 1/m
+	real damping; // 0 to 1
 	Vector2 forceAccum;
 
 public:
+	// constructors
 	Particle();
-	Particle(Vector2 p, Vector2 v, Vector2 a, real d, real im, Vector2 fa);
+	Particle(const Vector2& position, real inverseMass);
 
+	// accessors
 	Vector2 getPosition() const;
 	Vector2 getVelocity() const;
+	Vector2 getAcceleration() const;
+	real getInverseMass() const;
+	real getMass() const;
 
 	void integrate(real duration);
 	void clearAcumulator();
 	void addForce(const Vector2& force);
-
-	bool hasFiniteMass() const;
-	real getMass() const;
-	Vector2 getvelocity() const;
+	bool isFiniteMass() const;
+	void applyImpulse(const Vector2& impulse);
+	void move(const Vector2& displacement); // teleport
 };
 
 

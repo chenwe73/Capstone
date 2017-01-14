@@ -72,18 +72,37 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="body.cpp" />
+    <ClCompile Include="collide_coarse.cpp" />
+    <ClCompile Include="collide_fine.cpp" />
+    <ClCompile Include="contacts.cpp" />
     <ClCompile Include="core.cpp" />
+    <ClCompile Include="fgen.cpp" />
     <ClCompile Include="graphics.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="particle.cpp" />
+    <ClCompile Include="pcontacts.cpp" />
     <ClCompile Include="pfgen.cpp" />
+    <ClCompile Include="plinks.cpp" />
+    <ClCompile Include="pworld.cpp" />
+    <ClCompile Include="world.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="app.h" />
+    <ClInclude Include="body.h" />
+    <ClInclude Include="collide_coarse.h" />
+    <ClInclude Include="collide_fine.h" />
+    <ClInclude Include="contacts.h" />
     <ClInclude Include="core.h" />
+    <ClInclude Include="fgen.h" />
     <ClInclude Include="graphics.h" />
     <ClInclude Include="particle.h" />
+    <ClInclude Include="pcontacts.h" />
     <ClInclude Include="pfgen.h" />
+    <ClInclude Include="plinks.h" />
     <ClInclude Include="precision.h" />
+    <ClInclude Include="pworld.h" />
+    <ClInclude Include="world.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
