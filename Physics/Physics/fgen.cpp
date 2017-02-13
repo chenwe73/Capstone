@@ -27,7 +27,7 @@ void Gravity::setGravity(const Vector2& gravity)
 
 void Gravity::updateForce(RigidBody *body, real duration)
 {
-	if (!body->isFiniteMass())
+	if (!body->isFiniteMass() || !body->getIsAwake() || gravity.magnitude() == 0)
 		return;
 
 	body->addForce(gravity * body->getMass());
@@ -74,6 +74,7 @@ void Field::updateForce(RigidBody *body, real duration)
 	{
 		Vector2 force = v.unit() * (k / (d*d));
 		body->addForceAtBodyPoint(force, point);
+		body->setAwake();
 	}
 }
 
@@ -93,6 +94,9 @@ Aero::Aero(const Matrix2 &tensor, const Vector2 &position,
 void Aero::updateForce(RigidBody *body, real duration)
 {
 	Vector2 velocityWorld = body->getVelocity() + *windSpeed;
+	if (velocityWorld.magnitude() == 0)
+		return;
+
 	Vector2 velocityBody = body->getTransformMatrix().transformInverseDirection(velocityWorld);
 	Vector2 forceBody = tensor * velocityBody;
 	Vector2 forceWorld = body->getTransformMatrix().transformDirection(forceBody);

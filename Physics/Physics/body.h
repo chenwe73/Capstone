@@ -7,6 +7,9 @@
 
 class RigidBody
 {
+public:
+	static real sleepEpsilon;
+
 protected:
 	Vector2 position; // position of center of mass
 	Vector2 orientation;
@@ -20,6 +23,10 @@ protected:
 	real angularDamping; // 0 to 1
 	Vector2 forceAccum;
 	real torqueAccum;
+
+	real motion;
+	bool isAwake;
+	bool canSleep;
 
 public:
 	RigidBody();
@@ -36,6 +43,7 @@ public:
 	real getInverseMass() const;
 	real getMass() const;
 	real getInverseMomentOfInertia() const;
+	bool getIsAwake() const;
 
 	Vector2 getPointInWorldSpace(const Vector2 &point);
 	Vector2 getPointInLocalSpace(const Vector2 &point);
@@ -54,6 +62,9 @@ public:
 	Vector2 getVelocityAtPoint(const Vector2 &point);
 	void move(const Vector2& displacement);
 	void rotate(real rotation);
+
+	void setAwake(const bool awake = true);
+	static void setSleepEpsilon(real sleepEpsilon);
 };
 
 

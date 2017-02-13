@@ -93,6 +93,11 @@ void drawParticle(Particle *p)
 
 void drawRigidBody(RigidBody *body)
 {
+	if (!body->getIsAwake())
+		glColor3f(0.0f, 0.0f, 1.0f);
+	else
+		glColor3f(1.0f, 1.0f, 0.0f);
+
 	float m[16];
 	body->getTransformMatrix().fillGLMatrix(m);
 
@@ -161,7 +166,7 @@ void drawCollisionBox(CollisionBox *box)
 	glPopMatrix();
 }
 
-const int TRACEPOINT = 100;
+const int TRACEPOINT = 10;
 int currentTrace = 0;
 real trace[TRACEPOINT][2] = { 0 };
 
@@ -177,4 +182,9 @@ void drawTrace(Particle *p)
 	for (int i = 0; i < TRACEPOINT; i++)
 		glVertex2f(trace[i][0], trace[i][1]);
 	glEnd();
+}
+
+void drawParticleLink(ParticleLink *pl)
+{
+	drawLine(pl->particle[0]->getPosition(), pl->particle[1]->getPosition());
 }

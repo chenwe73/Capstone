@@ -13,6 +13,7 @@
 
 #include "body.h"
 #include "fgen.h"
+#include "joints.h"
 #include "world.h"
 
 #include "collide_fine.h"
@@ -26,16 +27,16 @@ bool controlOn = false;
 
 ParticleWorld pWorld(100, 0);
 
-Particle p1(Vector2(0.0, -0.2), 1);
+Particle p1(Vector2(0.0, 0.2), 1);
 Particle p2(Vector2(0.0, 0.0), 1);
-Particle p3(Vector2(0.2, 0.0), 1);
-Particle p4(Vector2(0.4, 0.2), 1);
+Particle p3(Vector2(0.0, -0.2), 1);
+Particle p4(Vector2(0.0, -0.4), 1);
 
 ParticleGravity gravity(g);
 ParticleDrag drag(0.2, 0.2);
 ParticleField field(Vector2::ORIGIN, mouseRadius, 0.01);
 ParticleBuoyancy buoyancy(0.0, 0.0005, waterHeight, 1000);
-ParticlePointGravity pointGravity(Vector2::ORIGIN, 0.01);
+ParticlePointGravity pointGravity(Vector2::ORIGIN, 0.001);
 
 ParticleSpring spring1(&p2, 5, 0.2);
 ParticleSpring spring2(&p1, 5, 0.2);
@@ -69,7 +70,7 @@ ParticleRod rod3(&p3, &p4, 0.2);
 ParticleRod rod4(&p4, &p1, 0.2);
 
 
-World world;
+World world(0);
 
 RigidBody body1(Vector2(0, 0), Vector2(1, 0.5),
 	1, 1.0f / (1.0f / 1 * 0.2 * 0.2 / 2));
@@ -96,6 +97,9 @@ CollisionSphere sphere2;
 CollisionPlane plane;
 CollisionBox box1;
 CollisionBox box2;
+ContactResolver resolver(10, 10, 0.0, 0.0);
+
+Joint joint(&body1, Vector2(-0.22, 0.0), &body2, Vector2(-0.22, 0.0), 0);
 
 
 #endif // __APP_H_INCLUDED__

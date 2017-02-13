@@ -67,7 +67,7 @@ void init()
 {
 	glClearColor(0.0, 0.0, 0.0, 1.0); // Set background (clear) color
 	pWorldInit();
-	//worldInit();
+	worldInit();
 }
 
 void display() 
@@ -142,8 +142,9 @@ void idle()
 
 	if (duration > 0)
 	{
+		duration = duration * 1;
 		pWorldUpdate(duration);
-		//worldUpdate(duration);
+		worldUpdate(duration);
 	}
 
 	glutPostRedisplay();    // Post a paint request to activate display()
@@ -180,6 +181,7 @@ void pWorldInit()
 	pWorld.getForceRegistry().add(&p3, &control3);
 	pWorld.getForceRegistry().add(&p4, &control4);
 	
+	//pWorld.getContactGenerators().push_back(&cable);
 	//pWorld.getContactGenerators().push_back(&rod1);
 	//pWorld.getContactGenerators().push_back(&rod2);
 	//pWorld.getContactGenerators().push_back(&rod3);
@@ -193,7 +195,6 @@ void pWorldUpdate(real duration)
 		gravity.setGravity(g);
 	else
 		gravity.setGravity(Vector2::ORIGIN);
-
 
 	pWorld.startFrame();
 	pWorld.runPhysics(duration);
@@ -222,6 +223,7 @@ void worldInit()
 
 	collisionData.contactArray = new Contact[100];
 	collisionData.restitution = 0.4;
+	collisionData.friction = 0.5;
 	
 	sphere1.body = &body1;
 	sphere1.radius = 0.2;
@@ -233,6 +235,7 @@ void worldInit()
 	box1.halfSize = size;
 	box2.body = &body2;
 	box2.halfSize = size;
+	RigidBody::setSleepEpsilon(0.00);
 }
 
 void worldUpdate(real duration)
@@ -253,17 +256,17 @@ void worldUpdate(real duration)
 	collisionData.contactsLeft = 100;
 	collisionData.contactsCount = 0;
 	int numContact = 0;
-	numContact += CollisionDetector::boxAndHalfSpace(box1, plane, &collisionData);
+	numContact += CollisionDetector::sphereAndHalfSpace(sphere1, plane, &collisionData);
 	numContact += CollisionDetector::boxAndHalfSpace(box2, plane, &collisionData);
-	numContact += CollisionDetector::boxAndBox2(box2, box1, &collisionData);
-	cout << numContact << "\n";
-	
-	for (int i = 0; i < collisionData.contactsCount; i++)
-	{
-		(collisionData.contactArray[i]).calculateInternals(duration);
-		//(collisionData.contactArray[i]).applyImpulse();
-		//(collisionData.contactArray[i]).applypositionchange();
-	}		
+	numContact += CollisionDetector::boxAndSphere(box2, sphere1, &collisionData);
+	cout << " " << numContact << "\n";
+
+	int jointContacts = 0;
+	jointContacts += joint.addContact(collisionData.contacts, collisionData.contactsLeft);
+	collisionData.addContacts(jointContacts);
+	numContact += jointContacts;
+
+	resolver.resolveContacts(collisionData.contactArray, numContact, duration);
 }
 
 void draw()
@@ -272,12 +275,12 @@ void draw()
 	drawAxis();
 
 	drawParticleWorld();
-	//drawWorld();
+	drawWorld();
 	
 	glColor3f(0.0f, 0.0f, 1.0f);
 	drawMouse(mouseVector, mouseRadius);
 	drawLine(Vector2(-1, waterHeight), Vector2(1, waterHeight));
-	
+	//drawTrace(&p1);
 }
 
 void drawParticleWorld()
@@ -288,9 +291,10 @@ void drawParticleWorld()
 		drawParticle(*i);
 
 	glColor3f(0.0f, 0.0f, 1.0f);
-	//drawVector2(p1.getPosition());
-	//drawLine(p1.getPosition(), p2.getPosition());
-
+	drawParticleLink(&rod1);
+	drawParticleLink(&rod2);
+	drawParticleLink(&rod3);
+	drawParticleLink(&rod4);
 	//drawTrace(&p3);
 }
 
@@ -298,8 +302,8 @@ void drawWorld()
 {
 	glColor3f(1.0f, 0.0f, 0.0f);
 	drawRigidBody(&body1);
-	//drawCollisionSphere(&sphere1);
-	drawCollisionBox(&box1);
+	drawCollisionSphere(&sphere1);
+	//drawCollisionBox(&box1);
 
 	drawRigidBody(&body2);
 	//drawCollisionSphere(&sphere2);
@@ -317,8 +321,5 @@ Vector2 screenToWorld(int x, int y)
 
 void test()
 {
-	Contact c;
-	c.contactNormal = Vector2(-1, 2);
-	c.calculateContactBasis();
-	c.contactToWorld.print();
+	
 }

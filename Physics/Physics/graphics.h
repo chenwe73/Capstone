@@ -10,6 +10,7 @@
 #include "particle.h"
 #include "body.h"
 #include "fgen.h"
+#include "plinks.h"
 
 #include "collide_fine.h"
 #include "contacts.h"
@@ -30,6 +31,7 @@ void drawCollisionData(CollisionData *data);
 void drawCollisionSphere(CollisionSphere *sphere);
 void drawCollisionBox(CollisionBox *box);
 void drawTrace(Particle *p);
+void drawParticleLink(ParticleLink *pl);
 
 
 #endif // __GRAPHICS_H_INCLUDED__

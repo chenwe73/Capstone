@@ -44,7 +44,19 @@ void Contact::calculateContactBasis()
 
 void Contact::calculateDesiredDeltaVelocity(real duration)
 {
-	desiredDeltaVelocity = -contactVelocity.x * (1 + restitution);
+	const static real velocityLimit = (real)0.01f;
+
+	real velocityFromAcc = 0;
+	velocityFromAcc = body[0]->getAcceleration() * duration * contactNormal;
+
+	if (body[1] != NULL)
+		velocityFromAcc -= body[1]->getAcceleration() * duration * contactNormal;
+
+	real thisRestitution = restitution;
+	if (real_abs(contactVelocity.x) < velocityLimit)
+		thisRestitution = 0;
+	
+	desiredDeltaVelocity = -contactVelocity.x - (contactVelocity.x - velocityFromAcc) * thisRestitution;
 }
 
 Vector2 Contact::calculateLocalVelocity(int bodyIndex, real duration)
@@ -53,8 +65,13 @@ Vector2 Contact::calculateLocalVelocity(int bodyIndex, real duration)
 	Vector2 velocityRot = relativeContactPosition[bodyIndex].crossProduct
 		(-thisBody->getAngularVelocity());
 	Vector2 velocityNet = velocityRot + thisBody->getVelocity();
+	Vector2 contactVelocity = contactToWorld.transpose() * velocityNet;
 
-	return contactToWorld.transpose() * velocityNet;
+	Vector2 accVelocity = thisBody->getAcceleration() * duration;
+	accVelocity = contactToWorld.transpose() * accVelocity;
+	accVelocity.x = 0;
+	contactVelocity.add(accVelocity);
+	return contactVelocity;
 }
 
 Vector2 Contact::calculateFrictionLessImpulse()
@@ -78,21 +95,65 @@ Vector2 Contact::calculateFrictionLessImpulse()
 	return impulseContact;
 }
 
-void Contact::applyImpulse()
+Vector2 Contact::calculateFrictionImpulse()
+{
+	real deltaVelLocalN = 0;
+	real deltaVelLocalT = 0;
+	for (int i = 0; i < 2; i++)
+	{
+		if (body[i] != NULL)
+		{
+			Vector2 unitImpulse = contactNormal;
+			real angularImpulse = relativeContactPosition[i].crossProduct(unitImpulse);
+			real deltaAngularVelocity = angularImpulse * body[i]->getInverseMomentOfInertia();
+			Vector2 deltaVelRotWorld = relativeContactPosition[i].crossProduct(-deltaAngularVelocity);
+			deltaVelLocalN += deltaVelRotWorld * contactNormal + body[i]->getInverseMass();
+
+			Vector2 contactTangent = contactNormal.normal();
+			angularImpulse = relativeContactPosition[i].crossProduct(contactTangent);
+			deltaAngularVelocity = angularImpulse * body[i]->getInverseMomentOfInertia();
+			deltaVelRotWorld = relativeContactPosition[i].crossProduct(-deltaAngularVelocity);
+			deltaVelLocalT += deltaVelRotWorld * contactTangent + body[i]->getInverseMass();
+		}
+	}
+	Vector2 impulseContact;
+	impulseContact.x = desiredDeltaVelocity / deltaVelLocalN;
+	
+	impulseContact.y = -contactVelocity.y / deltaVelLocalT;
+	if (real_abs(impulseContact.y) > friction * impulseContact.x)
+	{ // dynamic friction
+		impulseContact.y = -contactVelocity.y / real_abs(contactVelocity.y)
+			* friction * impulseContact.x;
+	}
+
+	return impulseContact;
+}
+
+// todo: get velocityChange
+void Contact::applyVelocityChange()
 {
 	if (contactVelocity.x >= 0)
 		return;
 
-	Vector2 impulse = contactToWorld * calculateFrictionLessImpulse();
+	Vector2 impulse = contactToWorld * calculateFrictionImpulse();
 	body[0]->applyImpulseAtPoint(impulse, contactPoint);
+
+	velocityChange[0] = impulse *  body[0]->getInverseMass();
+	rotationChange[0] = -(impulse.crossProduct(contactPoint - body[0]->getPosition()))
+		* body[0]->getInverseMomentOfInertia();
+
 	if (body[1] != NULL)
 	{
 		impulse.invert();
 		body[1]->applyImpulseAtPoint(impulse, contactPoint);
+
+		velocityChange[1] = impulse *  body[1]->getInverseMass();
+		rotationChange[1] = -(impulse.crossProduct(contactPoint - body[1]->getPosition()))
+			* body[1]->getInverseMomentOfInertia();
 	}
 }
 
-void Contact::applypositionchange()
+void Contact::applyPositionChange()
 {
 	real linearMove[2];
 	real angularMove[2];
@@ -103,6 +164,7 @@ void Contact::applypositionchange()
 
 	for (int i = 0; i < 2; i++)
 		if (body[i] != NULL)
+
 		{
 			real angularImpulse = relativeContactPosition[i].crossProduct(contactNormal);
 			deltaAngularVelocity[i] = angularImpulse * body[i]->getInverseMomentOfInertia();
@@ -134,11 +196,24 @@ void Contact::applypositionchange()
 			}
 
 			linearChange[i] = contactNormal * linearMove[i];
-			angularChange[i] = deltaAngularVelocity[i] / angularInertia[i] * angularMove[i];
+			if (angularMove[i] == 0 || angularInertia[i] == 0)
+				angularChange[i] = 0;
+			else
+				angularChange[i] = deltaAngularVelocity[i] / angularInertia[i] * angularMove[i];
+
 			body[i]->move(linearChange[i]);
 			body[i]->rotate(angularChange[i]);
 			body[i]->calculateDerivedData();
 		}
+}
+
+ContactResolver::ContactResolver(int velocityIteration, int positionIteration,
+	real velocityEpsilon, real positionEpsilon)
+{
+	this->positionIteration = positionIteration;
+	this->velocityIteration = velocityIteration;
+	this->positionEpsilon = positionEpsilon;
+	this->velocityEpsilon = velocityEpsilon;
 }
 
 void ContactResolver::resolveContacts(Contact *contactArray,
@@ -146,10 +221,16 @@ void ContactResolver::resolveContacts(Contact *contactArray,
 {
 	if (numContacts == 0)
 		return;
-
 	prepareContacts(contactArray, numContacts, duration);
-	adjestPositions(contactArray, numContacts, duration);
+	adjustPositions(contactArray, numContacts, duration);
 	adjustVelocities(contactArray, numContacts, duration);
+	
+	/*for (int i = 0; i < numContacts; i++)
+	{
+		contactArray[i].calculateInternals(duration);
+		contactArray[i].applyVelocityChange();
+		contactArray[i].applyPositionChange();
+	}*/
 }
 
 void ContactResolver::prepareContacts(Contact *contactArray,
@@ -159,10 +240,11 @@ void ContactResolver::prepareContacts(Contact *contactArray,
 		contactArray[i].calculateInternals(duration);
 }
 
-void ContactResolver::adjestPositions(Contact *contactArray,
+void ContactResolver::adjustPositions(Contact *contactArray,
 	int numContacts, real duration)
 {
-	Vector2 linearChange[2], angularChange[2];
+	Vector2 linearChange[2];
+	real angularChange[2];
 
 	positionIterationUsed = 0;
 	while (positionIterationUsed < positionIteration)
@@ -180,10 +262,45 @@ void ContactResolver::adjestPositions(Contact *contactArray,
 		}
 		if (indexMax == -1)
 			break;
-		contactArray[indexMax].applypositionchange();
 
-		// todo update penetrations
+		contactArray[indexMax].applyPositionChange();
+		contactArray[indexMax].calculateInternals(duration);
 
+		// resolve penetration
+		linearChange[0] = contactArray[indexMax].linearChange[0];
+		linearChange[1] = contactArray[indexMax].linearChange[1];
+		angularChange[0] = contactArray[indexMax].angularChange[0];
+		angularChange[1] = contactArray[indexMax].angularChange[1];
+
+		for (int i = 0; i < numContacts; i++)
+		{
+			for (int b = 0; b < 2; b++)
+			{
+				if (contactArray[i].body[b] != NULL)
+				{
+					for (int d = 0; d < 2; d++)
+					{
+						if (contactArray[i].body[b] == contactArray[indexMax].body[d])
+						{
+							Vector2 deltaPosition = linearChange[d] + 
+								contactArray[i].relativeContactPosition[b].crossProduct(
+								-angularChange[d]);
+
+							int sign;
+							if (b == 0)
+								sign = -1;
+							else
+								sign = 1;
+
+							contactArray[i].penetration +=
+								deltaPosition * (contactArray[i].contactNormal) * sign;
+
+							contactArray[i].calculateInternals(duration);
+						}
+					}
+				}
+			}
+		}
 		positionIterationUsed++;
 	}
 }
@@ -191,5 +308,80 @@ void ContactResolver::adjestPositions(Contact *contactArray,
 void ContactResolver::adjustVelocities(Contact *contactArray,
 	int numContacts, real duration)
 {
+	Vector2 velocityChange[2];
+	real rotationChange[2];
 
+	velocityIterationUsed = 0;
+	while (velocityIterationUsed < velocityIteration)
+	{
+		real max = velocityEpsilon;
+		int indexMax = -1;
+
+		for (int i = 0; i < numContacts; i++)
+		{
+			if (contactArray[i].desiredDeltaVelocity > max)
+			{
+				max = contactArray[i].desiredDeltaVelocity;
+				indexMax = i;
+			}
+		}
+		if (indexMax == -1)
+			break;
+		
+		contactArray[indexMax].matchAwakeState();
+		contactArray[indexMax].applyVelocityChange();
+		contactArray[indexMax].calculateInternals(duration);
+
+		// resolve penetration
+		velocityChange[0] = contactArray[indexMax].velocityChange[0];
+		velocityChange[1] = contactArray[indexMax].velocityChange[1];
+		rotationChange[0] = contactArray[indexMax].rotationChange[0];
+		rotationChange[1] = contactArray[indexMax].rotationChange[1];
+
+		for (int i = 0; i < numContacts; i++)
+		{
+			for (int b = 0; b < 2; b++)
+			{
+				if (contactArray[i].body[b] != NULL)
+				{
+					for (int d = 0; d < 2; d++)
+					{
+						if (contactArray[i].body[b] == contactArray[indexMax].body[d])
+						{
+							Vector2 deltaVelocity = velocityChange[d] +
+								contactArray[i].relativeContactPosition[b].crossProduct(
+								-rotationChange[d]);
+
+							int sign;
+							if (b == 0)
+								sign = 1;
+							else
+								sign = -1;
+
+							contactArray[i].contactVelocity.add(
+								contactArray[i].contactToWorld.transpose() * deltaVelocity * sign);
+
+							//contactArray[i].calculateDesiredDeltaVelocity(duration);
+							contactArray[i].calculateInternals(duration);
+						}
+					}
+				}
+			}
+		}
+		velocityIterationUsed++;
+	}
+}
+
+void Contact::matchAwakeState()
+{
+	if (body[1] == NULL)
+		return;
+
+	bool isAwake0 = body[0]->getIsAwake();
+	bool isAwake1 = body[1]->getIsAwake();
+
+	if (isAwake0 && !isAwake1)
+		body[1]->setAwake();
+	else if (!isAwake0 && isAwake1)
+		body[0]->setAwake();
 }

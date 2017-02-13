@@ -9,7 +9,7 @@
 class Contact
 {
 	friend class ContactResolver;
-
+	
 public:
 	RigidBody* body[2];
 	real friction;
@@ -17,20 +17,23 @@ public:
 	Vector2 contactPoint;
 	Vector2 contactNormal; // from perspective of body[0]
 	real penetration;
+
 	Vector2 linearChange[2];
 	real angularChange[2];
+	Vector2 velocityChange[2];
+	real rotationChange[2];
 
 public:
 	void setBodyData(RigidBody* body1, RigidBody* body2,
 		real friction, real restitution);
 
-//protected:
+protected:
 	Matrix2 contactToWorld;
 	Vector2 relativeContactPosition[2];
 	Vector2 contactVelocity; // local space
 	real desiredDeltaVelocity; // local space
 
-//protected:
+protected:
 	void calculateInternals(real duration);
 	void swapBodies();
 	void calculateContactBasis();
@@ -38,8 +41,11 @@ public:
 	Vector2 calculateLocalVelocity(int bodyIndex, real duration);
 
 	Vector2 calculateFrictionLessImpulse();
-	void applyImpulse();
-	void applypositionchange(); // resolve penetration
+	Vector2 calculateFrictionImpulse();
+	void applyVelocityChange();
+	void applyPositionChange(); // resolve penetration
+
+	void matchAwakeState();
 };
 
 class ContactResolver
@@ -55,16 +61,26 @@ public:
 	int velocityIterationUsed;
 
 public:
+	ContactResolver(int velocityIteration,
+		int positionIteration,
+		real velocityEpsilon = (real)0.01,
+		real positionEpsilon = (real)0.01);
 	void resolveContacts(Contact *contactArray,
 		int numContacts, real duration);
 
 protected:
 	void prepareContacts(Contact *contactArray, 
 		int numContacts, real duration);
-	void adjestPositions(Contact *contactArray,
+	void adjustPositions(Contact *contactArray,
 		int numContacts, real duration);
 	void adjustVelocities(Contact *contactArray,
 		int numContacts, real duration);
+};
+
+class ContactGenerator
+{
+public:
+	virtual int addContact(Contact *contact, int limit) const = 0;
 };
 
 

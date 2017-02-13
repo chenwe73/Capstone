@@ -1,14 +1,27 @@
 #include "world.h"
 
+World::World(int maxContcts, int iterations)
+	: resolver(iterations, iterations)
+{
+	World::maxContacts = maxContcts;
+	contacts = new Contact[maxContcts];
+	calculateIterations = (iterations == 0);
+}
+
+World::~World()
+{
+	delete[] contacts;
+}
+
 World::RigidBodies& World::getRigidBodies()
 {
 	return bodies;
 }
 
-/*World::ContactGenerators& World::getContactGenerators()
+World::ContactGenerators& World::getContactGenerators()
 {
 	return contactGenerators;
-}*/
+}
 
 ForceRegistry& World::getForceRegistry()
 {

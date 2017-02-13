@@ -42,8 +42,6 @@ real Particle::getMass() const
 
 void Particle::integrate(real duration)
 {
-	// p = p + v*t     + (1/2 * a*t^2) ~ 0
-	position.addScaledVector(velocity, duration);
 	// F = m*a
 	//Vector2 resultingAcc = acceleration;
 	//resultingAcc.addScaledVector(forceAccum, inverseMass);
@@ -52,6 +50,9 @@ void Particle::integrate(real duration)
 	velocity.addScaledVector(acceleration, duration);
 	// v = v * d^t
 	velocity.scale(real_pow(damping, duration));
+	// p = p + v*t     + (1/2 * a*t^2) ~ 0
+	position.addScaledVector(velocity, duration);
+	position.add(acceleration * (duration * duration / 2));
 	// clear forces
 	clearAcumulator();
 }

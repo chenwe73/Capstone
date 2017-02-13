@@ -74,6 +74,7 @@ public:
 	
 	void setOrientation(const Vector2 &v);
 	void setComponents(const Vector2 &a, const Vector2 &b);
+	//void setSkeySymmetric(const Vector2 &v);
 };
 
 // 2x3 matrix

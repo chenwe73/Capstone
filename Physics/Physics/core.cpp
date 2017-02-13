@@ -18,7 +18,7 @@ Vector2::Vector2(real x, real y)
 
 void Vector2::print() const
 {
-	printf("< %2.2f , %2.2f >", x, y);
+	printf("< %f , %f >", x, y);
 }
 
 void Vector2::invert()
@@ -246,6 +246,7 @@ void Matrix2::setComponents(const Vector2 &a, const Vector2 &b)
 	data[0] = a.x;	data[1] = b.x;
 	data[2] = a.y;	data[3] = b.y;
 }
+
 
 
 Matrix3::Matrix3()

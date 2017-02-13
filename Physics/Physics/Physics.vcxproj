@@ -79,6 +79,7 @@
     <ClCompile Include="core.cpp" />
     <ClCompile Include="fgen.cpp" />
     <ClCompile Include="graphics.cpp" />
+    <ClCompile Include="joints.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="particle.cpp" />
     <ClCompile Include="pcontacts.cpp" />
@@ -96,6 +97,7 @@
     <ClInclude Include="core.h" />
     <ClInclude Include="fgen.h" />
     <ClInclude Include="graphics.h" />
+    <ClInclude Include="joints.h" />
     <ClInclude Include="particle.h" />
     <ClInclude Include="pcontacts.h" />
     <ClInclude Include="pfgen.h" />

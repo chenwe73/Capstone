@@ -1,5 +1,7 @@
 #include "body.h"
 
+real RigidBody::sleepEpsilon = 0;
+
 RigidBody::RigidBody()
 	: orientation(1, 0)
 {
@@ -7,6 +9,9 @@ RigidBody::RigidBody()
 	inverseMomentOfInertia = 1;
 	linearDamping = (real)0.99;
 	angularDamping = (real)0.99;
+	motion = 10 * sleepEpsilon;
+	isAwake = true;
+	canSleep = true;
 	calculateDerivedData();
 }
 
@@ -21,6 +26,9 @@ RigidBody::RigidBody(const Vector2 &position, const Vector2 &orientation,
 	this->inverseMomentOfInertia = inverseMomentOfInertia;
 	linearDamping = (real)0.99;
 	angularDamping = (real)0.99;
+	motion = 10 * sleepEpsilon;
+	isAwake = true;
+	canSleep = true;
 	calculateDerivedData();
 }
 
@@ -72,6 +80,11 @@ real RigidBody::getInverseMomentOfInertia() const
 	return inverseMomentOfInertia;
 }
 
+bool RigidBody::getIsAwake() const
+{
+	return isAwake;
+}
+
 void RigidBody::calculateDerivedData()
 {
 	orientation.normalize();
@@ -81,26 +94,44 @@ void RigidBody::calculateDerivedData()
 void RigidBody::addForce(const Vector2 &force)
 {
 	forceAccum.add(force);
+	isAwake = true;
 }
 
 void RigidBody::integrate(real duration)
 {
+	if (!isAwake)
+		return;
+
 	// a = f / m
-	Vector2 a = acceleration;
-	a.addScaledVector(forceAccum, inverseMass);
+	acceleration = forceAccum * inverseMass;
 	real angularAcceleration = torqueAccum * inverseMomentOfInertia;
 	// v = v + a*t
-	velocity.addScaledVector(a, duration);
+	velocity.addScaledVector(acceleration, duration);
 	angularVelocity += angularAcceleration * duration;
 	// v = v * d^t
 	velocity.scale(real_pow(linearDamping, duration));
 	angularVelocity *= real_pow(angularDamping, duration);
 	// p = p + v*t     + (1/2 * a*t^2) ~ 0
-	position.addScaledVector(velocity, duration);
+	position.add(velocity * duration);
+	position.add(acceleration * (duration * duration / 2));
 	orientation.rotate(angularVelocity * duration);
+	orientation.rotate(angularAcceleration * (duration * duration / 2));
 
 	calculateDerivedData();
 	clearAccumulators();
+
+	if (canSleep)
+	{
+		const real baseBias = 0.5f;
+		real currentMotion = velocity * velocity + angularVelocity * angularVelocity;
+		real bias = real_pow(baseBias, duration);
+		motion = bias * motion + (1 - bias) * currentMotion;
+
+		if (motion < sleepEpsilon)
+			setAwake(false);
+		else if (motion > 10 * sleepEpsilon)
+			motion = 10 * sleepEpsilon;
+	}
 }
 
 void RigidBody::clearAccumulators()
@@ -123,6 +154,7 @@ void RigidBody::addForceAtBodyPoint(const Vector2 &force, const Vector2 &point)
 {
 	Vector2 world = transformMatrix * point;
 	addForceAtPoint(force, world);
+	isAwake = true;
 }
 
 void RigidBody::addForceAtPoint(const Vector2 &force, const Vector2 &point)
@@ -130,16 +162,16 @@ void RigidBody::addForceAtPoint(const Vector2 &force, const Vector2 &point)
 	Vector2 arm = point - position;
 	forceAccum.add(force);
 	torqueAccum += arm.crossProduct(force);
+	isAwake = true;
 }
 
 void RigidBody::applyImpulseAtPoint(const Vector2& impulse, const Vector2 &point)
 {
 	// linear
-	velocity.add(impulse *  inverseMass);
+	Vector2 deltaLinearVelocity = impulse *  inverseMass;
+	velocity.add(deltaLinearVelocity);
 	// angular
-	Vector2 arm = point - position;
-	real angularImpulse = impulse.crossProduct(arm) * -1;
-	real deltaAngularVelocity = angularImpulse * inverseMomentOfInertia;
+	real deltaAngularVelocity = -(impulse.crossProduct(point - position)) * inverseMomentOfInertia;
 	angularVelocity += deltaAngularVelocity;
 }
 
@@ -164,4 +196,25 @@ void RigidBody::move(const Vector2& displacement)
 void RigidBody::rotate(real rotation)
 {
 	orientation.rotate(rotation);
+}
+
+void RigidBody::setAwake(const bool awake)
+{
+	
+	if (awake)
+	{
+		isAwake = true;
+		motion = sleepEpsilon * 2.0f;
+	}
+	else
+	{
+		isAwake = false;
+		velocity.clear();
+		angularVelocity = 0;
+	}
+}
+
+void RigidBody::setSleepEpsilon(real sleepEpsilon)
+{
+	RigidBody::sleepEpsilon = sleepEpsilon;
 }
