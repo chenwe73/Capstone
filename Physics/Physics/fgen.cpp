@@ -15,9 +15,10 @@ void ForceRegistry::updateForces(real duration)
 		i->fg->updateForce(i->body, duration);
 }
 
-Gravity::Gravity(const Vector2& gravity)
+Gravity::Gravity(const Vector2& gravity, bool on)
 {
 	this->gravity = gravity;
+	this->on = on;
 }
 
 void Gravity::setGravity(const Vector2& gravity)
@@ -25,9 +26,15 @@ void Gravity::setGravity(const Vector2& gravity)
 	this->gravity = gravity;
 }
 
+void Gravity::setOn(bool on)
+{
+	this->on = on;
+}
+
 void Gravity::updateForce(RigidBody *body, real duration)
 {
-	if (!body->isFiniteMass() || !body->getIsAwake() || gravity.magnitude() == 0)
+	if (!body->isFiniteMass() || !body->getIsAwake() 
+		|| gravity.magnitude() == 0 || !on)
 		return;
 
 	body->addForce(gravity * body->getMass());

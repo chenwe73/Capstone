@@ -97,33 +97,34 @@ Vector2 Contact::calculateFrictionLessImpulse()
 
 Vector2 Contact::calculateFrictionImpulse()
 {
-	real deltaVelLocalN = 0;
-	real deltaVelLocalT = 0;
+	Matrix2 sum_deltaVelocity(0, 0, 0, 0);
 	for (int i = 0; i < 2; i++)
 	{
 		if (body[i] != NULL)
 		{
-			Vector2 unitImpulse = contactNormal;
-			real angularImpulse = relativeContactPosition[i].crossProduct(unitImpulse);
-			real deltaAngularVelocity = angularImpulse * body[i]->getInverseMomentOfInertia();
-			Vector2 deltaVelRotWorld = relativeContactPosition[i].crossProduct(-deltaAngularVelocity);
-			deltaVelLocalN += deltaVelRotWorld * contactNormal + body[i]->getInverseMass();
-
-			Vector2 contactTangent = contactNormal.normal();
-			angularImpulse = relativeContactPosition[i].crossProduct(contactTangent);
-			deltaAngularVelocity = angularImpulse * body[i]->getInverseMomentOfInertia();
-			deltaVelRotWorld = relativeContactPosition[i].crossProduct(-deltaAngularVelocity);
-			deltaVelLocalT += deltaVelRotWorld * contactTangent + body[i]->getInverseMass();
+			// [T^-1(-1/MOI * R*R)T + I*1/m] p = v
+			// r % v % r = R v
+			Vector2 r = relativeContactPosition[i];
+			real IMOI = body[i]->getInverseMomentOfInertia();
+			Matrix2 deltaVelocity(r.y * r.y * IMOI, -r.x * r.y * IMOI,
+				-r.x * r.y * IMOI, r.x * r.x * IMOI);
+			deltaVelocity = contactToWorld.transpose() * deltaVelocity * contactToWorld;
+			real inverseMass = body[i]->getInverseMass();
+			deltaVelocity = deltaVelocity + Matrix2(inverseMass, 0, 0, inverseMass);
+			sum_deltaVelocity = sum_deltaVelocity + deltaVelocity;
 		}
 	}
-	Vector2 impulseContact;
-	impulseContact.x = desiredDeltaVelocity / deltaVelLocalN;
-	
-	impulseContact.y = -contactVelocity.y / deltaVelLocalT;
+	Matrix2 impulseMatrix = sum_deltaVelocity.inverse();
+	Vector2 velKill(desiredDeltaVelocity, -contactVelocity.y);
+	Vector2 impulseContact = impulseMatrix * velKill;
+
 	if (real_abs(impulseContact.y) > friction * impulseContact.x)
 	{ // dynamic friction
-		impulseContact.y = -contactVelocity.y / real_abs(contactVelocity.y)
-			* friction * impulseContact.x;
+		impulseContact.y = impulseContact.y / real_abs(impulseContact.y);
+		impulseContact.x = sum_deltaVelocity.data[0] +
+			sum_deltaVelocity.data[1] * friction * impulseContact.y;
+		impulseContact.x = desiredDeltaVelocity / impulseContact.x;
+		impulseContact.y *= friction * impulseContact.x;
 	}
 
 	return impulseContact;
@@ -214,6 +215,12 @@ ContactResolver::ContactResolver(int velocityIteration, int positionIteration,
 	this->velocityIteration = velocityIteration;
 	this->positionEpsilon = positionEpsilon;
 	this->velocityEpsilon = velocityEpsilon;
+}
+
+void ContactResolver::setIterations(int velocityIteration, int positionIteration)
+{
+	ContactResolver::velocityIteration = velocityIteration;
+	ContactResolver::positionIteration = positionIteration;
 }
 
 void ContactResolver::resolveContacts(Contact *contactArray,

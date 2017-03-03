@@ -16,8 +16,23 @@ public:
 	real error;
 
 public:
+	Joint();
 	Joint(RigidBody *a, const Vector2& a_pos,
 		RigidBody *b, const Vector2& b_pos, real error);
+	int addContact(Contact *contact, int limit) const;
+};
+
+class JointFixed : public ContactGenerator
+{
+public:
+	RigidBody* body;
+	Vector2 position[2];
+	real error;
+
+public:
+	JointFixed();
+	JointFixed(RigidBody *a, const Vector2& a_pos,
+		const Vector2& b_pos, real error);
 	int addContact(Contact *contact, int limit) const;
 };
 

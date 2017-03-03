@@ -6,6 +6,9 @@ real ParticleLink::currentLength() const
 	return d.magnitude();
 }
 
+ParticleCable::ParticleCable()
+{}
+
 ParticleCable::ParticleCable(Particle* p1, Particle* p2, real maxLength, real restitution)
 {
 	particle[0] = p1;
@@ -30,6 +33,9 @@ int ParticleCable::addContact(ParticleContact *contact, int limit) const
 	contact->penetration = currentLen - maxLength;
 	return 1;
 }
+
+ParticleRod::ParticleRod()
+{}
 
 ParticleRod::ParticleRod(Particle* p1, Particle* p2, real length)
 {

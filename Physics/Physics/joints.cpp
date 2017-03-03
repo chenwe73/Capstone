@@ -1,5 +1,8 @@
 #include "joints.h"
 
+Joint::Joint()
+{}
+
 Joint::Joint(RigidBody *a, const Vector2& a_pos,
 	RigidBody *b, const Vector2& b_pos, real error)
 {
@@ -22,6 +25,37 @@ int Joint::addContact(Contact *contact, int limit) const
 		return 0;
 
 	contact->setBodyData(body[0], body[1], 1, 0);
+	contact->contactPoint = (a_pos_world + b_pos_world) * 0.5f;
+	contact->contactNormal = normal.unit();
+	contact->penetration = penetration;
+
+	return 1;
+}
+
+JointFixed::JointFixed()
+{}
+
+JointFixed::JointFixed(RigidBody *a, const Vector2& a_pos,
+	const Vector2& b_pos, real error)
+{
+	body = a;
+	position[0] = a_pos;
+	position[1] = b_pos;
+	JointFixed::error = error;
+}
+
+int JointFixed::addContact(Contact *contact, int limit) const
+{
+	Vector2 a_pos_world = body->getPointInWorldSpace(position[0]);
+	Vector2 b_pos_world = position[1];
+
+	Vector2 normal = b_pos_world - a_pos_world;
+	real penetration = normal.magnitude() - error;
+
+	if (penetration <= 0)
+		return 0;
+
+	contact->setBodyData(body, NULL, 1, 0);
 	contact->contactPoint = (a_pos_world + b_pos_world) * 0.5f;
 	contact->contactNormal = normal.unit();
 	contact->penetration = penetration;

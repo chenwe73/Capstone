@@ -63,8 +63,9 @@ public:
 public:
 	ContactResolver(int velocityIteration,
 		int positionIteration,
-		real velocityEpsilon = (real)0.01,
-		real positionEpsilon = (real)0.01);
+		real velocityEpsilon = (real)0.0,
+		real positionEpsilon = (real)0.0);
+	void setIterations(int velocityIteration, int positionIteration);
 	void resolveContacts(Contact *contactArray,
 		int numContacts, real duration);
 

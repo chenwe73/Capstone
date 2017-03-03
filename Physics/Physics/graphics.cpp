@@ -94,9 +94,9 @@ void drawParticle(Particle *p)
 void drawRigidBody(RigidBody *body)
 {
 	if (!body->getIsAwake())
-		glColor3f(0.0f, 0.0f, 1.0f);
+		glColor3fv(SECONDARY_COLOR);
 	else
-		glColor3f(1.0f, 1.0f, 0.0f);
+		glColor3fv(OBJECT_COLOR);
 
 	float m[16];
 	body->getTransformMatrix().fillGLMatrix(m);
@@ -166,6 +166,18 @@ void drawCollisionBox(CollisionBox *box)
 	glPopMatrix();
 }
 
+void drawCollisionPlane(CollisionPlane *plane)
+{
+	glPushMatrix();
+	{
+		Vector2 center = plane->normal * plane->offset;
+		glTranslatef(center.x, center.y, 0);
+		drawVector2(center.crossProduct(+4));
+		drawVector2(center.crossProduct(-4));
+	}
+	glPopMatrix();
+}
+
 const int TRACEPOINT = 10;
 int currentTrace = 0;
 real trace[TRACEPOINT][2] = { 0 };
@@ -187,4 +199,34 @@ void drawTrace(Particle *p)
 void drawParticleLink(ParticleLink *pl)
 {
 	drawLine(pl->particle[0]->getPosition(), pl->particle[1]->getPosition());
+}
+
+void drawField(Field *field)
+{
+	glPushMatrix();
+	{
+		glTranslatef(field->source.x, field->source.y, 0);
+		glScalef(field->radius, field->radius, 1);
+		drawCircle();
+	}
+	glPopMatrix();
+}
+
+void drawParticleField(ParticleField *field)
+{
+	glPushMatrix();
+	{
+		glTranslatef(field->source.x, field->source.y, 0);
+		glScalef(field->radius, field->radius, 1);
+		drawCircle();
+	}
+	glPopMatrix();
+}
+
+void drawJointFixed(JointFixed *jointfixed)
+{
+	Vector2 a_pos_world = jointfixed->body->getPosition();
+	Vector2 b_pos_world = jointfixed->position[1];
+
+	drawLine(a_pos_world, b_pos_world);
 }

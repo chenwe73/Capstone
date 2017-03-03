@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Demo">
+      <UniqueIdentifier>{c4512b2e-0666-4380-b0c8-2c2aa9d861ca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="precision.h">
@@ -63,6 +66,18 @@
     <ClInclude Include="joints.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="car.h">
+      <Filter>Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="Domino.h">
+      <Filter>Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="cradle.h">
+      <Filter>Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="pool.h">
+      <Filter>Demo</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="particle.cpp">
@@ -110,5 +125,25 @@
     <ClCompile Include="joints.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="app.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="car.cpp">
+      <Filter>Demo</Filter>
+    </ClCompile>
+    <ClCompile Include="Domino.cpp">
+      <Filter>Demo</Filter>
+    </ClCompile>
+    <ClCompile Include="cradle.cpp">
+      <Filter>Demo</Filter>
+    </ClCompile>
+    <ClCompile Include="pool.cpp">
+      <Filter>Demo</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="todo.txt">
+      <Filter>Demo</Filter>
+    </Text>
   </ItemGroup>
 </Project>

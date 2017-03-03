@@ -5,12 +5,15 @@ real RigidBody::sleepEpsilon = 0;
 RigidBody::RigidBody()
 	: orientation(1, 0)
 {
+	angularVelocity = 0;
 	inverseMass = 1;
 	inverseMomentOfInertia = 1;
 	linearDamping = (real)0.99;
 	angularDamping = (real)0.99;
+	torqueAccum = 0;
+
 	motion = 10 * sleepEpsilon;
-	isAwake = true;
+	isAwake = false;
 	canSleep = true;
 	calculateDerivedData();
 }
@@ -24,10 +27,13 @@ RigidBody::RigidBody(const Vector2 &position, const Vector2 &orientation,
 		this->orientation = orientation;
 	this->inverseMass = inverseMass;
 	this->inverseMomentOfInertia = inverseMomentOfInertia;
+	angularVelocity = 0;
 	linearDamping = (real)0.99;
 	angularDamping = (real)0.99;
+	torqueAccum = 0;
+
 	motion = 10 * sleepEpsilon;
-	isAwake = true;
+	isAwake = false;
 	canSleep = true;
 	calculateDerivedData();
 }

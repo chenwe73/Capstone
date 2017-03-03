@@ -61,8 +61,10 @@ public:
 	
 	void print() const;
 
+	Matrix2 operator*(real s) const;
 	Vector2 operator*(const Vector2 &v) const;
 	Matrix2 operator*(const Matrix2 &m) const;
+	Matrix2 operator+(const Matrix2 &m) const;
 
 	real determinant() const;
 	void setInverse(const Matrix2 &m);

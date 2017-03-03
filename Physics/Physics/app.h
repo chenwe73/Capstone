@@ -1,6 +1,9 @@
 #ifndef __APP_H_INCLUDED__
 #define __APP_H_INCLUDED__
 
+#include <windows.h>
+#include <GL/glut.h>
+#include <iostream>
 
 #include "precision.h"
 #include "core.h"
@@ -15,91 +18,94 @@
 #include "fgen.h"
 #include "joints.h"
 #include "world.h"
-
 #include "collide_fine.h"
 
-Vector2 origin(0, 0);
-real mouseRadius = 0.2;
-real waterHeight = -0.8f;
-Vector2 g(0, -0.2);
-bool gravityOn = false;
-bool controlOn = false;
-
-ParticleWorld pWorld(100, 0);
-
-Particle p1(Vector2(0.0, 0.2), 1);
-Particle p2(Vector2(0.0, 0.0), 1);
-Particle p3(Vector2(0.0, -0.2), 1);
-Particle p4(Vector2(0.0, -0.4), 1);
-
-ParticleGravity gravity(g);
-ParticleDrag drag(0.2, 0.2);
-ParticleField field(Vector2::ORIGIN, mouseRadius, 0.01);
-ParticleBuoyancy buoyancy(0.0, 0.0005, waterHeight, 1000);
-ParticlePointGravity pointGravity(Vector2::ORIGIN, 0.001);
-
-ParticleSpring spring1(&p2, 5, 0.2);
-ParticleSpring spring2(&p1, 5, 0.2);
-ParticleAnchoredSpring ancheredSpring(&origin, 5, 0.2);
-ParticleBungee bungee1(&p2, 5, 0.2);
-ParticleBungee bungee2(&p1, 5, 0.2);
-ParticleAnchoredBungee ancheredBungee(&origin, 5, 0.2);
-ParticleFakeSpring fakeSpring(&origin, 100, 10);
-
-Vector2 ox(0.2, 0.0);
-Vector2 oy(0.0, 0.2);
-Vector2 offset[2] = { origin, origin };
-
-Particle* other1[2] = { &p2, &p4 };
-Vector2 offset1[2] = { ox, oy };
-ParticleControl control1(other1, offset1);
-Particle* other2[2] = { &p1, &p3 };
-Vector2 offset2[2] = { -ox, oy };
-ParticleControl control2(other2, offset2);
-Particle* other3[2] = { &p4, &p2 };
-Vector2 offset3[2] = { -ox, -oy };
-ParticleControl control3(other3, offset3);
-Particle* other4[2] = { &p3, &p1 };
-Vector2 offset4[2] = { ox, -oy };
-ParticleControl control4(other4, offset4);
-
-ParticleCable cable(&p1, &p2, 0.2, 0.1);
-ParticleRod rod1(&p1, &p2, 0.2);
-ParticleRod rod2(&p2, &p3, 0.2);
-ParticleRod rod3(&p3, &p4, 0.2);
-ParticleRod rod4(&p4, &p1, 0.2);
+#include "graphics.h"
 
 
-World world(0);
+class ParticleApplication
+{
+public:
+	static const int PARTICLE_NUM = 10;
+	bool gravityOn;
+	Vector2 g;
 
-RigidBody body1(Vector2(0, 0), Vector2(1, 0.5),
-	1, 1.0f / (1.0f / 1 * 0.2 * 0.2 / 2));
-RigidBody body2(Vector2(0, 0.3), Vector2(-1, 0),
-	1, 1.0f / (1.0f / 1 * 0.2 * 0.2 / 2));
+	ParticleWorld world;
+	Particle particles[PARTICLE_NUM];
 
-Vector2 connectionPoint(0.2, 0.0);
-Vector2 size(0.2, 0.1);
+	ParticleGravity gravity;
+	ParticleDrag drag;
+	ParticleField field;
 
-Gravity gravityB(g);
-Field fieldB(Vector2::ORIGIN, mouseRadius, 0.01, connectionPoint);
-Spring springB1(connectionPoint, &body2, connectionPoint, 5, 0.2);
-Spring springB2(connectionPoint, &body1, connectionPoint, 5, 0.2);
+	ParticleControl control[PARTICLE_NUM];
 
-Matrix2 aeroTensor(-0.1, 0, 0, -0.1);
-Vector2 windSpeed = Vector2::ORIGIN;
-Aero aero(aeroTensor, Vector2::ORIGIN, &windSpeed);
-Buoyancy buoyancyB1(0.0, 0.005, waterHeight, 1000, Vector2::ORIGIN);
-Buoyancy buoyancyB2(0.0, 0.0005, waterHeight, 1000, -connectionPoint);
+	ParticleRod rod;
 
-CollisionData collisionData;
-CollisionSphere sphere1;
-CollisionSphere sphere2;
-CollisionPlane plane;
-CollisionBox box1;
-CollisionBox box2;
-ContactResolver resolver(10, 10, 0.0, 0.0);
+public:
+	ParticleApplication();
+	void update(real duration);
+	void display();
 
-Joint joint(&body1, Vector2(-0.22, 0.0), &body2, Vector2(-0.22, 0.0), 0);
+	void setFieldSource(const Vector2& position);
+	void switchGravity();
+};
+
+
+class RigidBodyApplication
+{
+protected:
+	static const int MAX_CONTACT = 1000;
+	static const int ITERATION = 1;
+
+	World world;
+
+	Gravity gravity;
+	Aero aero;
+	Field field;
+
+	CollisionData collisionData;
+	ContactResolver resolver;
+
+protected:
+	virtual void generateContacts() = 0;
+
+public:
+	RigidBodyApplication();
+	void update(real duration);
+	virtual void display() = 0;
+
+	void passiveMotion(const Vector2& position);
+	void keyboard(unsigned char key);
+
+	static real sphereMOIPerMass(real radius);
+	static real boixMOIPerMass(const Vector2& halfsize);
+};
+
+
+class SandBoxApp : public RigidBodyApplication
+{
+protected:
+	static const int SPHERE_NUM = 5;
+	static const int BOX_NUM = 5;
+	static const int PLANE_NUM = 4;
+	static const int JOINT_NUM = 2;
+
+	RigidBody sphere_bodies[SPHERE_NUM];
+	RigidBody box_bodies[BOX_NUM];
+	
+	CollisionSphere spheres[SPHERE_NUM];
+	CollisionBox boxes[BOX_NUM];
+	CollisionPlane planes[PLANE_NUM];
+
+	Joint joints[JOINT_NUM];
+
+protected:
+	void generateContacts();
+
+public:
+	SandBoxApp();
+	void display();
+};
 
 
 #endif // __APP_H_INCLUDED__

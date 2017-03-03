@@ -72,11 +72,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="app.cpp" />
     <ClCompile Include="body.cpp" />
+    <ClCompile Include="car.cpp" />
     <ClCompile Include="collide_coarse.cpp" />
     <ClCompile Include="collide_fine.cpp" />
     <ClCompile Include="contacts.cpp" />
     <ClCompile Include="core.cpp" />
+    <ClCompile Include="cradle.cpp" />
+    <ClCompile Include="Domino.cpp" />
     <ClCompile Include="fgen.cpp" />
     <ClCompile Include="graphics.cpp" />
     <ClCompile Include="joints.cpp" />
@@ -85,6 +89,7 @@
     <ClCompile Include="pcontacts.cpp" />
     <ClCompile Include="pfgen.cpp" />
     <ClCompile Include="plinks.cpp" />
+    <ClCompile Include="pool.cpp" />
     <ClCompile Include="pworld.cpp" />
     <ClCompile Include="world.cpp" />
   </ItemGroup>
@@ -95,16 +100,23 @@
     <ClInclude Include="collide_fine.h" />
     <ClInclude Include="contacts.h" />
     <ClInclude Include="core.h" />
+    <ClInclude Include="cradle.h" />
+    <ClInclude Include="Domino.h" />
     <ClInclude Include="fgen.h" />
     <ClInclude Include="graphics.h" />
+    <ClInclude Include="car.h" />
     <ClInclude Include="joints.h" />
     <ClInclude Include="particle.h" />
     <ClInclude Include="pcontacts.h" />
     <ClInclude Include="pfgen.h" />
     <ClInclude Include="plinks.h" />
+    <ClInclude Include="pool.h" />
     <ClInclude Include="precision.h" />
     <ClInclude Include="pworld.h" />
     <ClInclude Include="world.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="todo.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -23,6 +23,10 @@ class CollisionSphere : public CollisionPrimitive
 {
 public:
 	real radius;
+
+public:
+	CollisionSphere();
+	CollisionSphere(RigidBody *body, real radius);
 };
 
 class CollisionPlane
@@ -30,24 +34,36 @@ class CollisionPlane
 public:
 	Vector2 normal;
 	real offset;
+
+public:
+	CollisionPlane();
+	CollisionPlane(const Vector2& normal, real offset);
 };
 
 class CollisionBox : public CollisionPrimitive
 {
 public:
 	Vector2 halfSize;
+
+public:
+	CollisionBox();
+	CollisionBox(RigidBody *body, const Vector2& halfSize);
 };
 
 
 struct CollisionData
 {
+	const int MAX_CONTACT;
 	Contact *contactArray;
 	Contact *contacts;
 	int contactsLeft;
 	int contactsCount;
-	real friction;
 	real restitution;
+	real friction;
 
+	CollisionData(int maxContact, real restitution, real friction);
+	~CollisionData();
+	void reset();
 	void addContacts(int n);
 };
 

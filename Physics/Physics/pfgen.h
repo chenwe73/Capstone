@@ -39,6 +39,7 @@ private:
 	Vector2 gravity;
 
 public:
+	ParticleGravity();
 	ParticleGravity(const Vector2& g);
 	void setGravity(const Vector2& gravity);
 	virtual void updateForce(Particle *particle, real duration);
@@ -52,6 +53,7 @@ private:
 	real k2;
 
 public:
+	ParticleDrag();
 	ParticleDrag(real k1, real k2);
 	virtual void updateForce(Particle *particle, real duration);
 };
@@ -59,12 +61,13 @@ public:
 // force field
 class ParticleField : public ParticleForceGenerator
 {
-private:
+public:
 	Vector2 source;
 	real radius;
 	real k;
 
 public:
+	ParticleField();
 	ParticleField(const Vector2& s, real r, real k);
 	virtual void updateForce(Particle *particle, real duration);
 	void setSource(const Vector2& s);
@@ -153,7 +156,7 @@ public:
 class ParticleControl : public ParticleForceGenerator
 {
 public:
-	static const int N = 2;
+	static const int N = 1;
 	bool on;
 
 private:
@@ -161,6 +164,8 @@ private:
 	Vector2 offset[N];
 	
 public:
+	ParticleControl();
+	ParticleControl(Particle *p);
 	ParticleControl(Particle *other[N], Vector2 offset[N]);
 	void switchOn(bool on);
 	virtual void updateForce(Particle *particle, real duration);

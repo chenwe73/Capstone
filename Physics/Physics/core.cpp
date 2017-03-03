@@ -164,6 +164,15 @@ void Matrix2::print() const
 					   << data[2] << ", " << data[3] << "} }";
 }
 
+Matrix2 Matrix2::operator*(real s) const
+{
+	real c0 = data[0] * s;
+	real c1 = data[1] * s;
+	real c2 = data[2] * s;
+	real c3 = data[3] * s;
+	return Matrix2(c0, c1, c2, c3);
+}
+
 Vector2 Matrix2::operator*(const Vector2 &v) const
 {
 	real c0 = data[0] * v.x + data[1] * v.y;
@@ -177,6 +186,15 @@ Matrix2 Matrix2::operator*(const Matrix2 &m) const
 	real c1 = data[0] * m.data[1] + data[1] * m.data[3];
 	real c2 = data[2] * m.data[0] + data[3] * m.data[2];
 	real c3 = data[2] * m.data[1] + data[3] * m.data[3];
+	return Matrix2(c0, c1, c2, c3);
+}
+
+Matrix2 Matrix2::operator+(const Matrix2 &m) const
+{
+	real c0 = data[0] + m.data[0];
+	real c1 = data[1] + m.data[1];
+	real c2 = data[2] + m.data[2];
+	real c3 = data[3] + m.data[3];
 	return Matrix2(c0, c1, c2, c3);
 }
 

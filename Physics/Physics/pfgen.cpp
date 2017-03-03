@@ -15,6 +15,9 @@ void ParticleForceRegistry::updateForces(real duration)
 		i->fg->updateForce(i->particle, duration);
 }
 
+ParticleGravity::ParticleGravity()
+{}
+
 ParticleGravity::ParticleGravity(const Vector2& g)
 {
 	gravity = g;
@@ -34,6 +37,9 @@ void ParticleGravity::updateForce(Particle *particle, real duration)
 	particle->addForce(gravity * particle->getMass());
 }
 
+ParticleDrag::ParticleDrag()
+{}
+
 ParticleDrag::ParticleDrag(real k1, real k2)
 {
 	this->k1 = k1;
@@ -52,6 +58,9 @@ void ParticleDrag::updateForce(Particle *particle, real duration)
 
 	particle->addForce(force);
 }
+
+ParticleField::ParticleField()
+{}
 
 ParticleField::ParticleField(const Vector2& s, real r, real k_p)
 {
@@ -203,6 +212,14 @@ void ParticleFakeSpring::updateForce(Particle *particle, real duration)
 	particle->addForce(force);
 }
 
+ParticleControl::ParticleControl()
+{}
+
+ParticleControl::ParticleControl(Particle *p)
+{
+	other[0] = p;
+	on = true;
+}
 
 ParticleControl::ParticleControl(Particle *other[N], Vector2 offset[N])
 {
@@ -211,7 +228,7 @@ ParticleControl::ParticleControl(Particle *other[N], Vector2 offset[N])
 		this->other[i] = other[i];
 		this->offset[i] = offset[i];
 	}
-	on = false;
+	on = true;
 }
 
 void ParticleControl::switchOn(bool on)
@@ -224,7 +241,7 @@ void ParticleControl::updateForce(Particle *particle, real duration)
 	if (!on)
 		return;
 
-	real k[2 * N] = { 0.5f, 0.5f, 0.1f, 0.1f };
+	real k[2 * N] = { 1, 1.5 };
 
 	Vector2 x[2 * N];
 	for (int i = 0; i < N; i++)

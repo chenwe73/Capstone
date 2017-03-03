@@ -1,5 +1,54 @@
 #include "collide_fine.h"
 
+CollisionSphere::CollisionSphere()
+{}
+
+CollisionSphere::CollisionSphere(RigidBody *body, real radius)
+{
+	CollisionSphere::body = body;
+	CollisionSphere::radius = radius;
+}
+
+CollisionPlane::CollisionPlane()
+{}
+
+CollisionPlane::CollisionPlane(const Vector2& normal, real offset)
+{
+	CollisionPlane::normal = normal;
+	CollisionPlane::offset = offset;
+}
+
+CollisionBox::CollisionBox()
+{}
+
+CollisionBox::CollisionBox(RigidBody *body, const Vector2& halfSize)
+{
+	CollisionBox::body = body;
+	CollisionBox::halfSize = halfSize;
+}
+
+
+CollisionData::CollisionData(int maxContact, real restitution, real friction)
+	: MAX_CONTACT(maxContact)
+{
+	contactArray = new Contact[MAX_CONTACT];
+	CollisionData::restitution = restitution;
+	CollisionData::friction = friction;
+	reset();
+}
+
+CollisionData::~CollisionData()
+{
+	delete[] contactArray;
+}
+
+void CollisionData::reset()
+{
+	contacts = contactArray;
+	contactsLeft = MAX_CONTACT;
+	contactsCount = 0;
+}
+
 void CollisionData::addContacts(int n)
 {
 	contactsLeft -= n;
@@ -107,7 +156,7 @@ int CollisionDetector::boxAndHalfSpace(const CollisionBox &box,
 		Vector2 vertexPos = box.body->getTransformMatrix() * (vertices[i]);
 		real penetration = plane.offset - vertexPos * normal;
 
-		if (penetration > 0)
+		if (penetration > -0.0)
 		{
 			Contact* contact = data->contacts;
 			contact->contactPoint = vertexPos + normal * (penetration);
@@ -302,7 +351,7 @@ static inline bool tryAxis(
 
 	real penetration = penetrationOnAxis(one, two, axis, toCentre);
 
-	if (penetration < 0) return false;
+	if (penetration < -0.0) return false;
 	if (penetration < smallestPenetration) {
 		smallestPenetration = penetration;
 		smallestCase = index;

@@ -36,13 +36,16 @@ public:
 
 class Gravity : public ForceGenerator
 {
-private:
+public:
 	Vector2 gravity;
+	bool on;
 
 public:
-	Gravity(const Vector2& gravity);
-	void setGravity(const Vector2& gravity);
+	Gravity(const Vector2& gravity, bool isOn);
 	virtual void updateForce(RigidBody *body, real duration);
+
+	void setGravity(const Vector2& gravity);
+	void setOn(bool on);
 };
 
 class Spring : public ForceGenerator
@@ -63,7 +66,7 @@ public:
 
 class Field : public ForceGenerator
 {
-private:
+public:
 	Vector2 source;
 	real radius;
 	real k;

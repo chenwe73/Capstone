@@ -26,6 +26,7 @@ public:
 	real restitution;
 
 public:
+	ParticleCable();
 	ParticleCable(Particle* p1, Particle* p2, real maxLength, real restitution);
 	virtual int addContact(ParticleContact *contact, int limit) const;
 };
@@ -37,6 +38,7 @@ public:
 	real length;
 
 public:
+	ParticleRod();
 	ParticleRod(Particle* p1, Particle* p2, real length);
 	virtual int addContact(ParticleContact *contact, int limit) const;
 };

@@ -27,7 +27,7 @@ protected:
 
 public:
 	// constructor
-	ParticleWorld(int maxContcts, int iterations = 0);
+	ParticleWorld(int maxContacts, int iterations = 0);
 	~ParticleWorld();
 
 	// accesor

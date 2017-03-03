@@ -1,10 +1,10 @@
 #include "pworld.h"
 
-ParticleWorld::ParticleWorld(int maxContcts, int iterations)
+ParticleWorld::ParticleWorld(int maxContacts, int iterations)
 	: resolver(iterations)
 {
-	ParticleWorld::maxContacts = maxContcts;
-	contacts = new ParticleContact[maxContcts];
+	ParticleWorld::maxContacts = maxContacts;
+	contacts = new ParticleContact[maxContacts];
 	calculateIterations = (iterations == 0);
 }
 
@@ -43,12 +43,12 @@ int ParticleWorld::generateContacts()
 	ContactGenerators::iterator i = contactGenerators.begin();
 	for (; i != contactGenerators.end(); i++)
 	{
+		if (limit <= 0)
+			break;
+
 		int used = (*i)->addContact(nextContact, limit);
 		limit -= used;
 		nextContact += used;
-
-		if (limit <= 0)
-			break;
 	}
 
 	return maxContacts - limit;

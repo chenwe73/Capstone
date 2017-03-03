@@ -1,10 +1,10 @@
 #include "world.h"
 
-World::World(int maxContcts, int iterations)
-	: resolver(iterations, iterations)
+World::World(int maxContacts, int iterations)
+	: resolver(iterations, iterations, 0, 0)
 {
-	World::maxContacts = maxContcts;
-	contacts = new Contact[maxContcts];
+	World::maxContacts = maxContacts;
+	contacts = new Contact[maxContacts];
 	calculateIterations = (iterations == 0);
 }
 
@@ -38,6 +38,25 @@ void World::startFrame()
 	}
 }
 
+int World::generateContacts()
+{
+	int limit = maxContacts;
+	Contact *nextContact = contacts;
+
+	ContactGenerators::iterator i = contactGenerators.begin();
+	for (; i != contactGenerators.end(); i++)
+	{
+		if (limit <= 0)
+			break;
+
+		int used = (*i)->addContact(nextContact, limit);
+		limit -= used;
+		nextContact += used;
+	}
+
+	return maxContacts - limit;
+}
+
 void World::integrate(real duration)
 {
 	RigidBodies::iterator i = bodies.begin();
@@ -49,11 +68,9 @@ void World::runPhysics(real duration)
 {
 	registry.updateForces(duration);
 	integrate(duration);
-	/*
 	int usedContacts = generateContacts();
 	//std::cout << usedContacts;
 	if (calculateIterations)
-		resolver.setIterations(usedContacts * 2);
+		resolver.setIterations(usedContacts * 2, usedContacts * 2);
 	resolver.resolveContacts(contacts, usedContacts, duration);
-	*/
 }
