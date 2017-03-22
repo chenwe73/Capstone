@@ -26,7 +26,7 @@ RigidBodyApplication()
 	Vector2 sphereStackPosition(-0.4, 0);
 	Vector2 boxStackPosition(-0.0, -wallDist + boxHalfSize.y);
 	Vector2 gap(sphereRadius*2, 0);
-	Vector2 link(0, 1);
+	Vector2 link(0, 0.7);
 
 	for (int i = 0; i < SPHERE_NUM; i++)
 	{
@@ -48,7 +48,7 @@ RigidBodyApplication()
 
 	for (int i = 0; i < SPHERE_NUM; i++)
 	{
-		joints[i] = JointFixed(&sphere_bodies[i], link,
+		joints[i] = JointAnchored(&sphere_bodies[i], link,
 			sphere_bodies[i].getPosition() + link, 0);
 	}
 
@@ -111,8 +111,25 @@ void CradleApp::display()
 	
 	glColor3fv(SECONDARY_COLOR);
 	for (int i = 0; i < JOINT_NUM; i++)
-		drawJointFixed(&joints[i]);
+		drawJointAnchored(&joints[i]);
 	drawField(&field);
 
 	drawCollisionData(&collisionData);
+}
+
+void CradleApp::keyboard(unsigned char key)
+{
+	switch (key)
+	{
+	case 'g':
+		gravity.setOn(!gravity.on);
+		break;
+
+	case ' ':
+		sphere_bodies[0].applyImpulseAtPoint(Vector2(-0.2, 0), Vector2(0, -0.1));
+		break;
+
+	default:
+		break;
+	}
 }

@@ -35,11 +35,17 @@ protected:
 
 	Joint joints[JOINT_NUM];
 
+	Spring wheelSpring[2];
+	Spring carSpring[2];
+
+	bool isWheelOn;
+
 protected:
 	void generateContacts();
 
 public:
 	CarApp();
+	virtual void updateForce(real duration);
 	void display();
 
 	void keyboard(unsigned char key);

@@ -179,11 +179,18 @@ void RigidBody::applyImpulseAtPoint(const Vector2& impulse, const Vector2 &point
 	// angular
 	real deltaAngularVelocity = -(impulse.crossProduct(point - position)) * inverseMomentOfInertia;
 	angularVelocity += deltaAngularVelocity;
+	isAwake = true;
 }
 
 bool RigidBody::isFiniteMass() const
 {
 	return (inverseMass > 0);
+}
+
+void RigidBody::applyTorque(real torque)
+{
+	torqueAccum += torque;
+	isAwake = true;
 }
 
 Vector2 RigidBody::getVelocityAtPoint(const Vector2 &point)

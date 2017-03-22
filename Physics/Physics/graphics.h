@@ -44,7 +44,8 @@ void drawTrace(Particle *p);
 void drawParticleLink(ParticleLink *pl);
 void drawField(Field *field);
 void drawParticleField(ParticleField *field);
-void drawJointFixed(JointFixed *jointfixed);
+void drawJointAnchored(JointAnchored *jointAnchored);
+void drawLink(Link *link);
 
 
 #endif // __GRAPHICS_H_INCLUDED__

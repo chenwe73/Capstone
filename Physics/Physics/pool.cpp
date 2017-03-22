@@ -5,7 +5,7 @@ RigidBodyApplication()
 {
 	collisionData.restitution = 0.9;
 	collisionData.friction = 0.5;
-	gravity.gravity = Vector2(0, 0);
+	gravity.setOn(false);
 
 	// wall
 	real wallDist = 0.9;

@@ -3,6 +3,8 @@
 CarApp::CarApp() :
 RigidBodyApplication()
 {
+	bool isWheelOn = false;
+
 	// wall
 	real wallDist = 0.9;
 	planes[0] = CollisionPlane(Vector2::Y, -wallDist);
@@ -13,15 +15,15 @@ RigidBodyApplication()
 	// car
 	Vector2 carPosition(-1.2, -0.5);
 	real wheelMass = 1;
-	real wheelRadius = 0.1;
+	real wheelRadius = 0.10;
 	real wheelMOI = wheelMass * sphereMOIPerMass(wheelRadius);
 	real carMass = 10;
 	Vector2 carHalfSize(0.4, 0.1);
 	Vector2 carTopHalfSize(0.2, 0.1);
 	real carMOI = carMass * boixMOIPerMass(carHalfSize);
-	Vector2 carWheelOffset1(+0.2, -0.1);
-	Vector2 carWheelOffset2(-0.2, -0.1);
-	Vector2 carTopOffset(0.0, 0.2);
+	Vector2 carWheelOffset1(+0.25, -0.1);
+	Vector2 carWheelOffset2(-0.25, -0.1);
+	Vector2 carTopOffset(-0.1, 0.2);
 
 	sphere_bodies[0] = RigidBody(carPosition + carWheelOffset1,
 		Vector2::X, 1.0f / wheelMass, 1.0f / wheelMOI);
@@ -37,12 +39,20 @@ RigidBodyApplication()
 		Vector2::X, 1.0f / carMass, 1.0f / carMOI);
 	boxes[1] = CollisionBox(&box_bodies[1], carTopHalfSize);
 
+	real jointError = 0.05;
 	joints[0] = Joint(&sphere_bodies[0], Vector2(0.0, 0.0),
-		&box_bodies[0], carWheelOffset1, 0.0);
+		&box_bodies[0], carWheelOffset1, jointError);
 	joints[1] = Joint(&sphere_bodies[1], Vector2(0.0, 0.0),
-		&box_bodies[0], carWheelOffset2, 0.0);
+		&box_bodies[0], carWheelOffset2, jointError);
 	joints[2] = Joint(&box_bodies[1], Vector2(0.0, 0.0),
 		&box_bodies[0], carTopOffset, 0.0);
+
+	real k = 1000;
+	real c = 2 * real_sqrt((wheelMass + carMass) * k) * 0.8;
+	wheelSpring[0] = Spring(Vector2::ORIGIN, &box_bodies[0], carWheelOffset1, k, c, 0.0);
+	carSpring[0] = Spring(carWheelOffset1, &sphere_bodies[0], Vector2::ORIGIN, k, c, 0.0);
+	wheelSpring[1] = Spring(Vector2::ORIGIN, &box_bodies[0], carWheelOffset2, k, c, 0.0);
+	carSpring[1] = Spring(carWheelOffset2, &sphere_bodies[1], Vector2::ORIGIN, k, c, 0.0);
 
 	// stack
 	real sphereMass = 1;
@@ -71,7 +81,6 @@ RigidBodyApplication()
 
 	for (int i = 2; i < BOX_NUM; i++)
 		boxes[i] = CollisionBox(&box_bodies[i], boxHalfSize);
-
 	
 	// assign to world
 	for (int i = 0; i < SPHERE_NUM; i++)
@@ -86,6 +95,11 @@ RigidBodyApplication()
 		world.getForceRegistry().add((*i), &field);
 		world.getForceRegistry().add((*i), &aero);
 	}
+
+	world.getForceRegistry().add(&sphere_bodies[0], &wheelSpring[0]);
+	world.getForceRegistry().add(&sphere_bodies[1], &wheelSpring[1]);
+	world.getForceRegistry().add(&box_bodies[0], &carSpring[0]);
+	world.getForceRegistry().add(&box_bodies[0], &carSpring[1]);
 
 	for (int i = 0; i < JOINT_NUM; i++)
 		world.getContactGenerators().push_back(&joints[i]);
@@ -109,11 +123,19 @@ void CarApp::generateContacts()
 
 	for (int i = 0; i < PLANE_NUM; i++)
 	{
+		collisionData.friction = 10;
 		for (int j = 0; j < SPHERE_NUM; j++)
 			CollisionDetector::sphereAndHalfSpace(spheres[j], planes[i], &collisionData);
+		collisionData.friction = 0.5;
 		for (int j = 0; j < BOX_NUM; j++)
 			CollisionDetector::boxAndHalfSpace(boxes[j], planes[i], &collisionData);
 	}
+}
+
+void CarApp::updateForce(real duration)
+{
+	if (isWheelOn)
+		sphere_bodies[1].applyTorque(-1);
 }
 
 void CarApp::display()
@@ -144,8 +166,8 @@ void CarApp::keyboard(unsigned char key)
 		gravity.setOn(!gravity.on);
 		break;
 
-	case 'w':
-		box_bodies[0].applyImpulseAtPoint(Vector2(1, 0), Vector2(0, -0.4));
+	case ' ':
+		isWheelOn = !isWheelOn;
 		break;
 
 	default:

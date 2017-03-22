@@ -54,7 +54,7 @@ public:
 class RigidBodyApplication
 {
 protected:
-	static const int MAX_CONTACT = 1000;
+	static const int MAX_CONTACT = 10000;
 	static const int ITERATION = 1;
 
 	World world;
@@ -71,40 +71,15 @@ protected:
 
 public:
 	RigidBodyApplication();
-	void update(real duration);
+	virtual void updateForce(real duration);
+	virtual void update(real duration);
 	virtual void display() = 0;
 
-	void passiveMotion(const Vector2& position);
-	void keyboard(unsigned char key);
+	virtual void passiveMotion(const Vector2& position);
+	virtual void keyboard(unsigned char key);
 
 	static real sphereMOIPerMass(real radius);
 	static real boixMOIPerMass(const Vector2& halfsize);
-};
-
-
-class SandBoxApp : public RigidBodyApplication
-{
-protected:
-	static const int SPHERE_NUM = 5;
-	static const int BOX_NUM = 5;
-	static const int PLANE_NUM = 4;
-	static const int JOINT_NUM = 2;
-
-	RigidBody sphere_bodies[SPHERE_NUM];
-	RigidBody box_bodies[BOX_NUM];
-	
-	CollisionSphere spheres[SPHERE_NUM];
-	CollisionBox boxes[BOX_NUM];
-	CollisionPlane planes[PLANE_NUM];
-
-	Joint joints[JOINT_NUM];
-
-protected:
-	void generateContacts();
-
-public:
-	SandBoxApp();
-	void display();
 };
 
 

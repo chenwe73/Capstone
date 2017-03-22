@@ -58,6 +58,7 @@ public:
 	void addForceAtPoint(const Vector2 &force, const Vector2 &point);
 	void applyImpulseAtPoint(const Vector2& impulse, const Vector2 &point);
 	bool isFiniteMass() const;
+	void applyTorque(real torque);
 
 	Vector2 getVelocityAtPoint(const Vector2 &point);
 	void move(const Vector2& displacement);

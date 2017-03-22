@@ -22,7 +22,7 @@ public:
 	int addContact(Contact *contact, int limit) const;
 };
 
-class JointFixed : public ContactGenerator
+class JointAnchored : public ContactGenerator
 {
 public:
 	RigidBody* body;
@@ -30,9 +30,48 @@ public:
 	real error;
 
 public:
-	JointFixed();
-	JointFixed(RigidBody *a, const Vector2& a_pos,
+	JointAnchored();
+	JointAnchored(RigidBody *a, const Vector2& a_pos,
 		const Vector2& b_pos, real error);
+	int addContact(Contact *contact, int limit) const;
+};
+
+class Link : public ContactGenerator
+{
+public:
+	RigidBody* body[2];
+
+protected:
+	real currentLength() const;
+
+public:
+	virtual int addContact(Contact *contact, int limit) const = 0;
+};
+
+class Rod : public Link
+{
+public:
+	Vector2 position[2];
+	real length;
+
+public:
+	Rod();
+	Rod(RigidBody *a, const Vector2& a_pos,
+		RigidBody *b, const Vector2& b_pos, real length);
+	int addContact(Contact *contact, int limit) const;
+};
+
+class Cable : public Link
+{
+public:
+	Vector2 position[2];
+	real length;
+	real restitution;
+
+public:
+	Cable();
+	Cable(RigidBody *a, const Vector2& a_pos,
+		RigidBody *b, const Vector2& b_pos, real length, real restitution);
 	int addContact(Contact *contact, int limit) const;
 };
 

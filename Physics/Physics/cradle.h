@@ -33,7 +33,7 @@ protected:
 	CollisionBox boxes[BOX_NUM];
 	CollisionPlane planes[PLANE_NUM];
 
-	JointFixed joints[JOINT_NUM];
+	JointAnchored joints[JOINT_NUM];
 
 protected:
 	void generateContacts();
@@ -41,6 +41,7 @@ protected:
 public:
 	CradleApp();
 	void display();
+	void keyboard(unsigned char key);
 };
 
 

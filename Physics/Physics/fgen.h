@@ -56,11 +56,13 @@ public:
 	Vector2 otherConnectionPoint;
 	real springConstant;
 	real restLength;
+	real dampingCoefficient;
 
 public:
+	Spring();
 	Spring(const Vector2 &connectionPoint, RigidBody *other,
 		const Vector2 &otherConnectionPoint, 
-		real springConstant, real restLength);
+		real springConstant, real dampingCoefficient, real restLength);
 	virtual void updateForce(RigidBody *body, real duration);
 };
 

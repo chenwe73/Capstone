@@ -40,14 +40,18 @@ void Gravity::updateForce(RigidBody *body, real duration)
 	body->addForce(gravity * body->getMass());
 }
 
+Spring::Spring()
+{}
+
 Spring::Spring(const Vector2 &connectionPoint, RigidBody *other,
 	const Vector2 &otherConnectionPoint,
-	real springConstant, real restLength)
+	real springConstant, real dampingCoefficient, real restLength)
 {
 	this->connectionPoint = connectionPoint;
 	this->other = other;
 	this->otherConnectionPoint = otherConnectionPoint;
 	this->springConstant = springConstant;
+	this->dampingCoefficient = dampingCoefficient;
 	this->restLength = restLength;
 }
 
@@ -55,10 +59,17 @@ void Spring::updateForce(RigidBody *body, real duration)
 {
 	Vector2 connectionWorld = body->getPointInWorldSpace(connectionPoint);
 	Vector2 otherConnectionWorld = other->getPointInWorldSpace(otherConnectionPoint);
-	Vector2 v = connectionWorld - otherConnectionWorld;
+	Vector2 l = connectionWorld - otherConnectionWorld;
 	
-	// F = -k * (l - l0)
-	Vector2 force = v.unit() * (-(v.magnitude() - restLength) * springConstant);
+	if ((l.magnitude() - restLength) == 0)
+		return;
+
+	Vector2 deltaV = body->getVelocityAtPoint(connectionPoint)
+		- other->getVelocityAtPoint(otherConnectionPoint);
+
+	// F = -k * (l - l0) - c * v
+	Vector2 force = l.unit() * (-(l.magnitude() - restLength) * springConstant)
+		- deltaV * dampingCoefficient;
 	body->addForceAtPoint(force, connectionWorld);
 }
 

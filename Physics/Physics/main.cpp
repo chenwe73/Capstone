@@ -5,10 +5,14 @@
 
 #include "graphics.h"
 #include "app.h"
+#include "sandBox.h"
 #include "car.h"
 #include "domino.h"
 #include "cradle.h"
 #include "pool.h"
+#include "bridge.h"
+#include "curtain.h"
+#include "piston.h"
 
 using namespace std;
 
@@ -21,7 +25,7 @@ const int WINDOW_H = 800;
 const double refreshMills = 1;
 
 clock_t t;
-PoolApp app;
+RigidBodyApplication* app;
 
 void display();
 void reshape(GLsizei width, GLsizei height);
@@ -69,6 +73,8 @@ void init()
 	gluOrtho2D(-1.0 * aspect, 1.0 * aspect, -1.0, 1.0);
 	glEnable(GL_LINE_SMOOTH);
 	//glEnable(GL_MULTISAMPLE);
+
+	app = new SandBoxApp;
 }
 
 void display() 
@@ -87,7 +93,38 @@ void reshape(GLsizei width, GLsizei height)
 /* Callback handler for normal-key event */
 void keyboard(unsigned char key, int x, int y)
 {
-	app.keyboard(key);
+	app->keyboard(key);
+
+	switch (key)
+	{
+	case '0':
+		app = new SandBoxApp;
+		break;
+	case '1':
+		app = new CarApp;
+		break;
+	case '2':
+		app = new CradleApp;
+		break;
+	case '3':
+		app = new DominoApp;
+		break;
+	case '4':
+		app = new PoolApp;
+		break;
+	case '5':
+		app = new BridgeApp;
+		break;
+	case '6':
+		app = new CurtainApp;
+		break;
+	case '7':
+		app = new PistonApp;
+		break;
+
+	default:
+		break;
+	}
 }
 
 /* Callback handler for special-key event */
@@ -96,10 +133,7 @@ void specialKeys(int key, int x, int y)
 
 /* Callback handler for mouse event */
 void mouse(int button, int state, int x, int y)
-{
-	if (button == GLUT_RIGHT_BUTTON && state == GLUT_UP)
-		exit(0);
-}
+{}
 
 // where (x, y) is the mouse location in Window's coordinates
 void motion(int x, int y)
@@ -108,7 +142,7 @@ void motion(int x, int y)
 void passiveMotion(int x, int y)
 {
 	Vector2 mouseVector = screenToWorld(x, y);
-	app.passiveMotion(mouseVector);
+	app->passiveMotion(mouseVector);
 }
 
 /* Called back when timer expired */
@@ -126,8 +160,8 @@ void Timer(int value)
 
 	if (duration > 0)
 	{
-		duration = duration * 1;
-		app.update(duration);
+		duration = duration * 1.0;
+		app->update(duration);
 	}
 
 	glutPostRedisplay();      // Post re-paint request to activate display()
@@ -139,7 +173,7 @@ void draw()
 	glColor3fv(SECONDARY_COLOR);
 	//drawAxis();
 
-	app.display();
+	app->display();
 }
 
 Vector2 screenToWorld(int x, int y)

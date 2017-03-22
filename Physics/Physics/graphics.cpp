@@ -223,10 +223,18 @@ void drawParticleField(ParticleField *field)
 	glPopMatrix();
 }
 
-void drawJointFixed(JointFixed *jointfixed)
+void drawJointAnchored(JointAnchored *jointAnchored)
 {
-	Vector2 a_pos_world = jointfixed->body->getPosition();
-	Vector2 b_pos_world = jointfixed->position[1];
+	Vector2 a_pos_world = jointAnchored->body->getPosition();
+	Vector2 b_pos_world = jointAnchored->position[1];
+
+	drawLine(a_pos_world, b_pos_world);
+}
+
+void drawLink(Link *link)
+{
+	Vector2 a_pos_world = link->body[0]->getPosition();
+	Vector2 b_pos_world = link->body[1]->getPosition();
 
 	drawLine(a_pos_world, b_pos_world);
 }
