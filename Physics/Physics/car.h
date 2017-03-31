@@ -21,8 +21,8 @@
 class CarApp : public RigidBodyApplication
 {
 protected:
-	static const int SPHERE_NUM = 10;
-	static const int BOX_NUM = 10;
+	static const int SPHERE_NUM = 20;
+	static const int BOX_NUM = 20;
 	static const int PLANE_NUM = 4;
 	static const int JOINT_NUM = 3;
 

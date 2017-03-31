@@ -55,7 +55,7 @@ class RigidBodyApplication
 {
 protected:
 	static const int MAX_CONTACT = 10000;
-	static const int ITERATION = 1;
+	static const int ITERATION = 4;
 
 	World world;
 

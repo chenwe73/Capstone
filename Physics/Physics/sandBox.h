@@ -21,8 +21,8 @@
 class SandBoxApp : public RigidBodyApplication
 {
 protected:
-	static const int SPHERE_NUM = 2;
-	static const int BOX_NUM = 2;
+	static const int SPHERE_NUM = 50;
+	static const int BOX_NUM = 50;
 	static const int PLANE_NUM = 4;
 	static const int JOINT_NUM = 2;
 

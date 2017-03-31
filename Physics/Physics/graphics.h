@@ -21,9 +21,11 @@
 #include "world.h"
 #include "collide_fine.h"
 
-
-const GLfloat OBJECT_COLOR[3] = { 0.0f, 1.0f, 0.0f };
-const GLfloat SECONDARY_COLOR[3] = { 0.0f, 0.0f, 1.0f };
+const GLfloat gray = 0.8f;
+const GLfloat lightGray = 0.2f;
+const GLfloat backGround = 0.1f;
+const GLfloat OBJECT_COLOR[3] = { gray, gray, gray };
+const GLfloat SECONDARY_COLOR[3] = { lightGray, lightGray, 1.0f };
 
 void drawAxis();
 void drawMouse(Vector2 position, real radius);

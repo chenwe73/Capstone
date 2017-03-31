@@ -3,7 +3,6 @@
 
 ragdoll
 tower
-piston
 
 robot arm
 falling text

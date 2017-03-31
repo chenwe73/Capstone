@@ -44,10 +44,11 @@ Vector2 screenToWorld(int x, int y);
 int main(int argc, char* argv[])
 {
 	glutInit(&argc, argv);            // Initialize GLUT
-	glutInitDisplayMode(GLUT_DEPTH | GLUT_MULTISAMPLE); // Enable double buffered mode
+	glutInitDisplayMode(GLUT_DOUBLE);
 	glutInitWindowSize(WINDOW_W, WINDOW_H);  // Initial window width and height
 	glutInitWindowPosition(WINDOW_X, WINDOW_Y); // Initial window top-left corner (x, y)
 	glutCreateWindow(WINDOW_TITLE);      // Create window with given title
+	//glutFullScreen();
 	init();
 
 	glutDisplayFunc(display);     // Register callback handler for window re-paint
@@ -66,7 +67,8 @@ int main(int argc, char* argv[])
 
 void init() 
 {
-	glClearColor(0.0, 0.0, 0.0, 1.0); // Set background (clear) color
+	glClearColor(backGround, backGround, backGround, 1.0f); // Set background (clear) color
+	//glClearColor(1.0, 1.0, 1.0, 1.0);
 	glMatrixMode(GL_MODELVIEW);    // To operate on the model-view matrix
 	glLoadIdentity();              // Reset model-view matrix
 	GLdouble aspect = (GLdouble)WINDOW_W / WINDOW_H;

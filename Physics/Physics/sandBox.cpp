@@ -12,11 +12,11 @@ RigidBodyApplication()
 
 	// stack
 	real sphereMass = 1;
-	real sphereRadius = 0.2;
+	real sphereRadius = 0.05;
 	real sphereMOI = sphereMass * sphereMOIPerMass(sphereRadius);
 
 	real boxMass = 1;
-	Vector2 boxHalfSize(0.2, 0.2);
+	Vector2 boxHalfSize(0.05, 0.05);
 	real boxMOI = boxMass * boixMOIPerMass(boxHalfSize);
 
 	Vector2 sphereStackPosition(+1.5, -wallDist + sphereRadius);

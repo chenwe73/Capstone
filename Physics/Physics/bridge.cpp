@@ -11,7 +11,7 @@ RigidBodyApplication()
 	planes[3] = CollisionPlane(-Vector2::X, -wallDist * 2);
 
 	// stack
-	real sphereMass = 1;
+	real sphereMass = 5;
 	real sphereRadius = 0.1;
 	real sphereMOI = sphereMass * sphereMOIPerMass(sphereRadius);
 
